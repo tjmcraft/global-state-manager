@@ -72,5 +72,7 @@
       "import": "./dist/global-state-manager.mjs",
       "default": "./dist/cjs/index.js"
     }
-  }
+  },
+  "sideEffects": false,
+  "type": "module"
 }
