@@ -1,9 +1,8 @@
-import { useGlobal } from "global-state-manager";
 import React from "react";
-import { getDispatch } from "./store/Global";
+import { getDispatch, useAppGlobal } from "./store/Global";
 
 function Main() {
-	const count = useGlobal(e => e.count);
+	const count = useAppGlobal(e => e.count);
   const { setCount } = getDispatch();
   const handleIncrement = () => setCount(count + 1);
   const handleDecrement = () => setCount(count - 1);

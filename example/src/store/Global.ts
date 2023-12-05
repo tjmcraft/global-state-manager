@@ -1,4 +1,4 @@
-import { StateStore } from 'global-state-manager';
+import { StateStore, useGlobal } from 'global-state-manager';
 import type { ActionNames, Actions } from 'global-state-manager';
 
 export type GlobalState = {
@@ -22,7 +22,13 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
 	};
 });
 
+export interface TypedUseSelectorHook<TState> {
+  <TSelected>(
+    selector: (state: TState) => TSelected,
+  ): TSelected
+}
 
+export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
 
 export const getDispatch = stateStore.getDispatch;
 export const getState = stateStore.getState;
