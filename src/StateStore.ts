@@ -25,7 +25,7 @@ export class StateStore {
 		}
 	};
 
-	getState = <T extends MapStateToProps>(selector: T): ReturnType<T> => selector(this.currentState) as ReturnType<T>;
+	getState = <T,S>(selector: (state: T) => S): S => selector(this.currentState as T);
 
 
 	private updateContainers = (currentState: GlobalState) => {

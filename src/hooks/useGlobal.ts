@@ -5,15 +5,13 @@ import { GlobalState, MapStateToProps } from "types";
 import useForceUpdate from "./useForceUpdate";
 import useGsmContext from "./useGsmContext";
 
-
-
-const updateContainer = <T extends MapStateToProps<T>>(selector: T, callback: Function, options: PickOptions) => {
-	return (global: GlobalState): ReturnType<T> =>
+const updateContainer = <T,S>(selector: (state:T) => S, callback: Function, options: PickOptions) => {
+	return (global: GlobalState): S =>
 		callback((prevState: GlobalState) => {
 
 			let nextState;
 			try {
-				nextState = selector(global);
+				nextState = selector(global as T);
 			} catch (err) {
 				return;
 			}
@@ -66,18 +64,18 @@ type PickOptions = {
 	label?: string;
 }
 
-const useGlobal = <T extends MapStateToProps<AnyLiteral>>(
-	selector: T,
+const useGlobal = <TState, Selected>(
+	selector: (state: TState) => Selected,
 	inputs: React.DependencyList = [],
 	options: PickOptions = {}
-): ReturnType<T> | undefined => {
+): Selected => {
 
 	const { store } = useGsmContext();
 
 	options = useMemo(() => Object.assign({ debugPicker: false, debugPicked: false, label: randomString(5) }, options), [options]);
 
 	const forceUpdate = useForceUpdate();
-	const mappedProps = useRef<ReturnType<typeof selector> | undefined>(undefined);
+	const mappedProps = useRef<ReturnType<typeof selector>>();
 
 	const picker = useCallback(selector, [selector, ...inputs]);
 
@@ -108,12 +106,12 @@ const useGlobal = <T extends MapStateToProps<AnyLiteral>>(
 				void forceUpdate(bool => !bool);
 			}
 		};
-		const callback = updateContainer(picker, updateCallback, options);
+		const callback = updateContainer<TState, Selected>(picker, updateCallback, options);
 		store.addCallback(callback);
 		return () => store.removeCallback(callback);
 	}, [forceUpdate, picker, options]);
 
-	return mappedProps.current;
+	return mappedProps.current as Selected;
 };
 
 export default useGlobal;

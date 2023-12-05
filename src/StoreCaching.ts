@@ -60,7 +60,7 @@ export const StoreCaching = <T extends AnyLiteral>(
 		const global = store.getState(e => e);
 		const reducedGlobal = {
 			...INITIAL_STATE,
-			...pick(global, cachingKeys as string[])
+			...pick(global, cachingKeys as never[])
 		};
 		try {
 			const json = JSON.stringify(reducedGlobal);
