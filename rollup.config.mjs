@@ -10,18 +10,9 @@ export default [
     input: "src/index.ts",
     external: Object.keys(pkg.peerDependencies || {}).concat('react-dom'),
     output: [
-      {
-				file: pkg.main,
-				format: 'cjs',
-        sourcemap: true,
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
-			},
 			{
-				file: pkg.module,
-				format: "esm",
+				file: 'dist/index.js',
+				format: "es",
         sourcemap: true,
         globals: {
           react: 'React',
