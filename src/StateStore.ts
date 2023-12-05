@@ -1,22 +1,7 @@
 import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
+import { ActionHandler, ActionNames, ActionOptions, ActionPayload, Actions, GlobalState, MapStateToProps } from "types";
 
-export type GlobalState = AnyLiteral;
-export type ActionNames = string;
-export type ActionPayload = any;
-
-interface ActionOptions {
-	silent?: boolean;
-}
-type Actions = Record<ActionNames, (payload?: ActionPayload, options?: ActionOptions) => void>;
-
-type ActionHandler = (
-  global: GlobalState,
-  actions: Actions,
-  payload: ActionPayload,
-) => GlobalState | void | Promise<void>;
-
-type MapStateToProps<OwnProps = AnyLiteral> = (global: GlobalState, ownProps?: OwnProps) => Partial<GlobalState>;
 
 export class StateStore {
 

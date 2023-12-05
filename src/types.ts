@@ -1,3 +1,20 @@
+export type GlobalState = AnyLiteral;
+export type ActionNames = string;
+export type ActionPayload = any;
+
+export interface ActionOptions {
+	silent?: boolean;
+}
+export type Actions = Record<ActionNames, (payload?: ActionPayload, options?: ActionOptions) => void>;
+
+export type ActionHandler = (
+  global: GlobalState,
+  actions: Actions,
+  payload: ActionPayload,
+) => GlobalState | void | Promise<void>;
+
+export type MapStateToProps<OwnProps = AnyLiteral> = (global: GlobalState, ownProps?: OwnProps) => Partial<GlobalState>;
+
 export interface Storage {
   getItem(key: string, ...args: Array<any>): any;
   setItem(key: string, value: any, ...args: Array<any>): any;
