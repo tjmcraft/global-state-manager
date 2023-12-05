@@ -1,4 +1,4 @@
-import { ReactGSMContextValue } from "Context";
+import { ReactGSMContextValue } from "GsmContext";
 import type { ReactNode, Context } from "react";
 import React from "react";
 import type { StateStore } from "StateStore";
