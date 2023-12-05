@@ -6,7 +6,9 @@ import fs from 'fs'
 export default defineConfig((options) => {
 
   const commonOptions: Partial<Options> = {
-    entry: ['src/index.ts'],
+    entry: {
+      'react-gsm': 'src/index.ts'
+    },
     sourcemap: true,
     target: 'es2016',
     ...options,

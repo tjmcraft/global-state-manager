@@ -1,20 +1,20 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "jsx": "react",
-    "module": "ESNext",
     "declaration": true,
-    "declarationDir": "dist",
-    "sourceMap": true,
-    "rootDir": "src",
-    "outDir": "dist",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
     "emitDeclarationOnly": true,
+    // "declarationDir": "dist",
+    "outDir": "./es",
+    "forceConsistentCasingInFileNames": true,
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src",
     "baseUrl": "./src",
     "paths": {
       "Util/*": ["Util/*"],
@@ -23,5 +23,7 @@
       "Model/*": ["Model/*"],
       "Hooks/*": ["hooks/*"],
     },
-  }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test/**/*"]
 }
