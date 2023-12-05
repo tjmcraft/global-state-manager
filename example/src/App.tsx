@@ -1,12 +1,16 @@
 import React from "react";
 import { StateStore, Provider } from "global-state-manager";
+import Main from "./Main";
+import { getDispatch, stateStore } from "./store/Global";
 
-const stateStore = new StateStore();
+getDispatch().init();
 
 const App = () => {
 	return (
 		<Provider store={stateStore}>
-			<div></div>
+			<div className="app">
+				<Main />
+			</div>
 		</Provider>
 	);
 };

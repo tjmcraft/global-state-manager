@@ -12,7 +12,8 @@ module.exports = {
 	},
 	resolve: {
 		alias: {
-			'global-state-manager': path.resolve('../')
+			'global-state-manager': path.resolve('../'),
+			'react': path.resolve('../node_modules/react'),
 		}
 	},
   module: {

@@ -7,19 +7,6 @@ export type GlobalState = {
 
 const INITIAL_STATE: GlobalState = { count: 0 };
 
-
-
-type ActionHandler = (
-  global: GlobalState,
-  actions: Actions,
-  payload: any,
-) => GlobalState | void | Promise<void>;
-
-export type MapStateToProps<T extends AnyFunction, OwnProps = AnyLiteral> =
-	(global: GlobalState, ownProps?: OwnProps) => ReturnType<T>;
-
-
-
 export const stateStore = new StateStore();
 
 stateStore.addReducer("init", () => {
@@ -35,14 +22,13 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
 	};
 });
 
+
+
 export const getDispatch = stateStore.getDispatch;
-export const getState =
-	<T extends MapStateToProps<T>>(selector: T): ReturnType<T> => stateStore.getState(selector);
+export const getState = stateStore.getState;
 export const setState = stateStore.setState;
 export const withState = stateStore.withState;
-export const addReducer: (name: ActionNames, reducer: ActionHandler) => void =
-	(...args) => stateStore.addReducer(...args);
-export const removeReducer: (name: ActionNames, reducer: ActionHandler) => void =
-	(...args) => stateStore.removeReducer(...args);
+export const addReducer = stateStore.addReducer;
+export const removeReducer = stateStore.removeReducer;
 export const addCallback = stateStore.addCallback;
 export const removeCallback = stateStore.removeCallback;
