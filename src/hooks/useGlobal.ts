@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { shallowEqual, stacksDiff, stacksEqual } from "Util/Iterates";
-import { addCallback, getState, removeCallback } from "Store/Global";
 import { randomString } from "Util/Random";
 import { GlobalState, MapStateToProps } from "types";
 import useForceUpdate from "./useForceUpdate";
+import { useGsmContext } from "./useGSMContext";
 
 const updateContainer = <T extends MapStateToProps<T>>(selector: T, callback: Function, options: PickOptions) => {
 	return (global: GlobalState): ReturnType<T> =>
@@ -64,11 +64,13 @@ type PickOptions = {
 	label?: string;
 }
 
-const useGlobal = <T extends MapStateToProps<T>>(
+const useGlobal = <T extends MapStateToProps<AnyLiteral>>(
 	selector: T,
 	inputs: React.DependencyList = [],
 	options: PickOptions = {}
 ): ReturnType<T> | undefined => {
+
+	const { store } = useGsmContext();
 
 	options = useMemo(() => Object.assign({ debugPicker: false, debugPicked: false, label: randomString(5) }, options), [options]);
 
@@ -80,7 +82,7 @@ const useGlobal = <T extends MapStateToProps<T>>(
 	useMemo(() => {
 		let nextState;
 		try {
-			nextState = getState(picker);
+			nextState = store.getState(picker);
 		} catch (e) {
 			return undefined;
 		}
@@ -105,8 +107,8 @@ const useGlobal = <T extends MapStateToProps<T>>(
 			}
 		};
 		const callback = updateContainer(picker, updateCallback, options);
-		addCallback(callback);
-		return () => removeCallback(callback);
+		store.addCallback(callback);
+		return () => store.removeCallback(callback);
 	}, [forceUpdate, picker, options]);
 
 	return mappedProps.current;
