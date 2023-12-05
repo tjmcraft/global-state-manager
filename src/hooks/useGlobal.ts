@@ -3,7 +3,9 @@ import { shallowEqual, stacksDiff, stacksEqual } from "Util/Iterates";
 import { randomString } from "Util/Random";
 import { GlobalState, MapStateToProps } from "types";
 import useForceUpdate from "./useForceUpdate";
-import { useGsmContext } from "./useGSMContext";
+import useGsmContext from "./useGsmContext";
+
+
 
 const updateContainer = <T extends MapStateToProps<T>>(selector: T, callback: Function, options: PickOptions) => {
 	return (global: GlobalState): ReturnType<T> =>
