@@ -1,5 +1,5 @@
 import React from "react";
-import { StateStore, Provider } from "index";
+import { StateStore, Provider } from "global-state-manager";
 
 const stateStore = new StateStore();
 
