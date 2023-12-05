@@ -10,7 +10,7 @@
     "declaration": true,
     "declarationDir": "dist",
     "sourceMap": true,
-    "rootDir": ".",
+    "rootDir": "src",
     "outDir": "dist",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
