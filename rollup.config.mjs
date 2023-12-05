@@ -2,6 +2,8 @@ import terser from '@rollup/plugin-terser';
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import typescript from "@rollup/plugin-typescript";
+import dts from "rollup-plugin-dts";
+import peerDepsExternal from "rollup-plugin-peer-deps-external";
 
 import pkg from "./package.json" assert { type: 'json' };
 
@@ -11,20 +13,27 @@ export default [
     external: Object.keys(pkg.peerDependencies || {}).concat('react-dom'),
     output: [
 			{
-				file: 'dist/index.js',
-				format: "es",
+        file: pkg.main,
+        format: "cjs",
         sourcemap: true,
-        globals: {
-          react: 'React',
-          'react-dom': 'ReactDOM',
-        },
-			},
+      },
+      {
+        file: pkg.module,
+        format: "esm",
+        sourcemap: true,
+      },
     ],
     plugins: [
+      peerDepsExternal(),
       resolve(),
       commonjs(),
       typescript({ tsconfig: "./tsconfig.json" }),
       terser(),
     ],
+  },
+  {
+    input: "src/index.ts",
+    output: [{ file: "dist/types.d.ts", format: "es" }],
+    plugins: [dts()],
   },
 ];

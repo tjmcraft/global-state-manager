@@ -8,10 +8,10 @@
     "jsx": "react",
     "module": "ESNext",
     "declaration": true,
-    "declarationDir": "dist",
+    "declarationDir": "types",
     "sourceMap": true,
-    "rootDir": "src",
-    "outDir": "dist",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "emitDeclarationOnly": true,
@@ -22,6 +22,6 @@
       "Components/*": ["components/*"],
       "Model/*": ["Model/*"],
       "Hooks/*": ["hooks/*"],
-    }
+    },
   }
 }
