@@ -1,6 +1,6 @@
 {
   "name": "global-state-manager",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "description": "Global State Manager for React",
   "scripts": {
     "rollup": "rimraf dist && rollup -c",
