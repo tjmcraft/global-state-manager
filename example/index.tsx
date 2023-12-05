@@ -1,5 +1,5 @@
 import React from "react";
-import { Provider, StateStore } from "index";
+import { StateStore, Provider } from "index";
 
 const stateStore = new StateStore();
 
