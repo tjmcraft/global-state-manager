@@ -7,7 +7,7 @@ export default defineConfig((options) => {
 
   const commonOptions: Partial<Options> = {
     entry: {
-      'react-gsm': 'src/index.ts'
+      'global-state-manager': 'src/index.ts'
     },
     sourcemap: true,
     target: 'es2016',
@@ -27,7 +27,7 @@ export default defineConfig((options) => {
     {
       ...commonOptions,
       entry: {
-        'react-gsm.legacy-esm': 'src/index.ts',
+        'global-state-manager.legacy-esm': 'src/index.ts',
       },
       target: 'es2017',
       format: ['esm'],
@@ -37,7 +37,7 @@ export default defineConfig((options) => {
     {
       ...commonOptions,
       entry: {
-        'react-gsm.browser': 'src/index.ts',
+        'global-state-manager.browser': 'src/index.ts',
       },
       define: {
         'process.env.NODE_ENV': JSON.stringify('production'),

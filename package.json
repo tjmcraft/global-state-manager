@@ -59,17 +59,17 @@
       "optional": true
     }
   },
-  "module": "dist/react-gsm.legacy-esm.js",
+  "module": "dist/global-state-manager.legacy-esm.js",
   "main": "dist/cjs/index.js",
-  "types": "dist/react-gsm.d.ts",
+  "types": "dist/global-state-manager.d.ts",
   "files": [
     "dist"
   ],
   "exports": {
     "./package.json": "./package.json",
     ".": {
-      "types": "./dist/react-gsm.d.ts",
-      "import": "./dist/react-gsm.mjs",
+      "types": "./dist/global-state-manager.d.ts",
+      "import": "./dist/global-state-manager.mjs",
       "default": "./dist/cjs/index.js"
     }
   }
