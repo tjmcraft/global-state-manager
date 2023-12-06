@@ -7,11 +7,12 @@ export type GlobalState = {
 
 export interface ActionPayloads {
 	init: undefined;
+	setCount: undefined;
 };
 
 const INITIAL_STATE: GlobalState = { count: 0 };
 
-export const stateStore = new StateStore();
+export const stateStore = new StateStore<GlobalState,ActionPayloads>();
 
 stateStore.addReducer("init", () => {
 	const initial = Object.assign({}, INITIAL_STATE);
@@ -26,16 +27,7 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
 	};
 });
 
-interface TypedGetDispatch<Payloads> {
-	(): {
-		[ActionName in keyof Payloads]:
-		(undefined extends Payloads[ActionName] ? (
-			(payload?: Payloads[ActionName], options?: ActionOptions) => void
-		) : (
-			(payload: Payloads[ActionName], options?: ActionOptions) => void
-		))
-	}
-}
+
 
 export interface TypedUseSelectorHook<TState> {
   <TSelected>(
@@ -45,7 +37,7 @@ export interface TypedUseSelectorHook<TState> {
 
 export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
 
-export const getDispatch: TypedGetDispatch<ActionPayloads> = stateStore.getDispatch;
+export const getDispatch = stateStore.getDispatch;
 export const getState = stateStore.getState;
 export const setState = stateStore.setState;
 export const withState = stateStore.withState;

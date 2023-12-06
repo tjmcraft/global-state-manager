@@ -1,24 +1,16 @@
 import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
-import { ActionHandler, ActionNames, ActionOptions, ActionPayload, Actions, GlobalState, MapStateToProps } from "types";
+import { ActionHandler, ActionOptions, ActionPayload, GlobalState, MapStateToProps } from "types";
 
-interface StateStoreInterface {
-	setState: (state?: {}, options?: ActionOptions) => void;
-	getState: <T, S>(selector: (state: T) => S) => S;
-	addCallback: (cb: Function) => void;
-	removeCallback: (cb: Function) => void;
-	addReducer: (name: ActionNames, reducer: ActionHandler) => void;
-	removeReducer: (name: ActionNames, reducer: ActionHandler) => void;
-	getDispatch: <T>() => T;
-	withState: (selector: MapStateToProps, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
-}
+
 
 export class StateStore<TState extends GlobalState, ActionPayloads> {
 
 	private currentState: TState = {} as TState;
 
-	private reducers: Record<string, ActionHandler[]> = {};
-	private actions: Actions = {};
+	private reducers: Record<StateStore.StoreActionsName<ActionPayloads>, ActionHandler[]> = {} as Record<StateStore.StoreActionsName<ActionPayloads>, ActionHandler[]>;
+	private actions: StateStore.StoreActions<ActionPayloads> = {} as StateStore.StoreActions<ActionPayloads>;
+
 	private containers: Map<string, {
 		selector: MapStateToProps<AnyLiteral>;
 		ownProps?: AnyLiteral;
@@ -79,7 +71,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		this.callbacks.forEach((cb) => typeof cb === "function" ? cb(this.currentState) : null);
 	};
 
-	private onDispatch = (name: string, payload?: ActionPayload, options?: ActionOptions) => {
+	private onDispatch = (name: StateStore.StoreActionsName<ActionPayloads>, payload?: ActionPayload, options?: ActionOptions) => {
 		if (this.reducers[name]) { // if reducers for this name exists
 			this.reducers[name].forEach((reducer) => {
 				const response = reducer(this.currentState, this.actions, payload);
@@ -91,7 +83,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		}
 	};
 
-	addReducer = (name: ActionNames, reducer: ActionHandler) => {
+	addReducer = (name: StateStore.StoreActionsName<ActionPayloads>, reducer: ActionHandler) => {
 		if (!this.reducers[name]) { // if no reducers for this name
 			this.reducers[name] = []; // create empty
 			this.actions[name] = (payload?: ActionPayload, options?: ActionOptions) => // add dispatch action
@@ -100,7 +92,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		this.reducers[name].push(reducer);
 	};
 
-	removeReducer = (name: ActionNames, reducer: ActionHandler) => {
+	removeReducer = (name: StateStore.StoreActionsName<ActionPayloads>, reducer: ActionHandler) => {
 		if (!this.reducers[name]) return;
 		const index = this.reducers[name].indexOf(reducer);
 		if (index !== -1) {
@@ -108,7 +100,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		}
 	};
 
-	getDispatch = <T>() => this.actions as T;
+	getDispatch = () => this.actions;
 
 	withState = (
 		selector: MapStateToProps,
@@ -144,4 +136,16 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		};
 	};
 
+}
+
+module StateStore {
+	export type StoreActionsName<Payloads> = keyof Payloads;
+	export type StoreActions<Payloads = Record<string, any>> = {
+		[ActionName in keyof Payloads]:
+		(undefined extends Payloads[ActionName] ? (
+			(payload?: Payloads[ActionName], options?: ActionOptions) => void
+		) : (
+				(payload: Payloads[ActionName], options?: ActionOptions) => void
+			))
+	};
 }
