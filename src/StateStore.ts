@@ -1,14 +1,15 @@
 import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
-import { ActionHandler, ActionOptions, ActionPayload, GlobalState, MapStateToProps } from "types";
+import { ActionOptions, ActionPayload, MapStateToProps } from "types";
 
 
 
-export class StateStore<TState extends GlobalState, ActionPayloads> {
+export class StateStore<TState extends AnyLiteral, ActionPayloads> {
 
 	private currentState: TState = {} as TState;
 
-	private reducers: Record<StateStore.StoreActionsName<ActionPayloads>, ActionHandler[]> = {} as Record<StateStore.StoreActionsName<ActionPayloads>, ActionHandler[]>;
+	private reducers: Record<StateStore.StoreActionsName<ActionPayloads>, StateStore.StoreActionHandler<TState, StateStore.StoreActions<ActionPayloads>, any>[]> =
+		{} as Record<StateStore.StoreActionsName<ActionPayloads>, StateStore.StoreActionHandler<TState, StateStore.StoreActions<ActionPayloads>, any>[]>;
 	private actions: StateStore.StoreActions<ActionPayloads> = {} as StateStore.StoreActions<ActionPayloads>;
 
 	private containers: Map<string, {
@@ -29,7 +30,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 
 	getState = <T extends TState,S = Partial<TState>>(selector: (state: T) => S): S => selector(this.currentState as T);
 
-	private updateContainers = (currentState: GlobalState) => {
+	private updateContainers = (currentState: TState) => {
 		for (const container of this.containers.values()) {
 			const { selector, ownProps, mappedProps, callback } = container;
 
@@ -83,7 +84,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		}
 	};
 
-	addReducer = (name: StateStore.StoreActionsName<ActionPayloads>, reducer: ActionHandler) => {
+	addReducer = (name: StateStore.StoreActionsName<ActionPayloads>, reducer: StateStore.StoreActionHandler<TState,StateStore.StoreActions<ActionPayloads>,any>) => {
 		if (!this.reducers[name]) { // if no reducers for this name
 			this.reducers[name] = []; // create empty
 			this.actions[name] = (payload?: ActionPayload, options?: ActionOptions) => // add dispatch action
@@ -92,7 +93,7 @@ export class StateStore<TState extends GlobalState, ActionPayloads> {
 		this.reducers[name].push(reducer);
 	};
 
-	removeReducer = (name: StateStore.StoreActionsName<ActionPayloads>, reducer: ActionHandler) => {
+	removeReducer = (name: StateStore.StoreActionsName<ActionPayloads>, reducer: StateStore.StoreActionHandler<TState,StateStore.StoreActions<ActionPayloads>,any>) => {
 		if (!this.reducers[name]) return;
 		const index = this.reducers[name].indexOf(reducer);
 		if (index !== -1) {
@@ -148,4 +149,9 @@ module StateStore {
 				(payload: Payloads[ActionName], options?: ActionOptions) => void
 			))
 	};
+	export type StoreActionHandler<TState,SActions,APayload> = (
+		global: TState,
+		actions: SActions,
+		payload: APayload,
+	) => TState | void | Promise<void>;
 }
