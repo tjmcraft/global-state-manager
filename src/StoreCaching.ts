@@ -3,8 +3,8 @@ import { pick } from "Util/Iterates";
 import { StateStore } from "StateStore";
 import { GlobalState, Storage } from "types";
 
-export const StoreCaching = <T extends AnyLiteral>(
-	store: StateStore,
+export const StoreCaching = <T extends AnyLiteral,A>(
+	store: StateStore<T,A>,
 	initialState: T,
 	cachingKeys: Array<keyof T>,
 	storage: Storage,

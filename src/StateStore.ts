@@ -2,10 +2,20 @@ import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
 import { ActionHandler, ActionNames, ActionOptions, ActionPayload, Actions, GlobalState, MapStateToProps } from "types";
 
+interface StateStoreInterface {
+	setState: (state?: {}, options?: ActionOptions) => void;
+	getState: <T, S>(selector: (state: T) => S) => S;
+	addCallback: (cb: Function) => void;
+	removeCallback: (cb: Function) => void;
+	addReducer: (name: ActionNames, reducer: ActionHandler) => void;
+	removeReducer: (name: ActionNames, reducer: ActionHandler) => void;
+	getDispatch: <T>() => T;
+	withState: (selector: MapStateToProps, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
+}
 
-export class StateStore {
+export class StateStore<TState extends GlobalState, ActionPayloads> {
 
-	private currentState: GlobalState = {};
+	private currentState: TState = {} as TState;
 
 	private reducers: Record<string, ActionHandler[]> = {};
 	private actions: Actions = {};
@@ -17,16 +27,15 @@ export class StateStore {
 		debug?: AnyLiteral | string;
 	}> = new Map();
 
-	setState = (state = {}, options: ActionOptions = {}) => {
+	setState = (state: Partial<TState> = {}, options: ActionOptions = {}) => {
 		if (typeof state === "object" && state !== this.currentState) {
-			this.currentState = state;
+			this.currentState = state as TState;
 			if (options?.silent) return; // if silent -> no callbacks
 			this.runCallbacks();
 		}
 	};
 
-	getState = <T,S>(selector: (state: T) => S): S => selector(this.currentState as T);
-
+	getState = <T extends TState,S = Partial<TState>>(selector: (state: T) => S): S => selector(this.currentState as T);
 
 	private updateContainers = (currentState: GlobalState) => {
 		for (const container of this.containers.values()) {
@@ -77,7 +86,7 @@ export class StateStore {
 				if (!response || typeof response.then === "function") {
 					return response;
 				}
-				this.setState(response, options);
+				this.setState(response as TState, options);
 			});
 		}
 	};
@@ -99,7 +108,7 @@ export class StateStore {
 		}
 	};
 
-	getDispatch = () => this.actions;
+	getDispatch = <T>() => this.actions as T;
 
 	withState = (
 		selector: MapStateToProps,

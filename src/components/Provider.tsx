@@ -3,13 +3,17 @@ import type { ReactNode, Context } from "react";
 import ReactGSMContext, { ReactGSMContextValue } from "GsmContext";
 import type { StateStore } from "StateStore";
 
-export interface ProviderProps {
-	store: StateStore,
+export interface ProviderProps<S extends AnyLiteral, A> {
+	store: StateStore<S, A>,
 	context?: Context<ReactGSMContextValue | null>,
 	children: ReactNode,
 }
 
-const Provider = ({ store, context, children }: ProviderProps) => {
+const Provider = <S extends AnyLiteral, A>({
+	store,
+	context,
+	children,
+}: ProviderProps<S, A>) => {
 
 	const contextValue = React.useMemo(() => {
 		return { store };
