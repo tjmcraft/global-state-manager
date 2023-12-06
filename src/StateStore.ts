@@ -2,7 +2,19 @@ import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
 import { ActionOptions, ActionPayload, MapStateToProps } from "types";
 
-function StateStore<TState extends AnyLiteral, ActionPayloads>(
+interface StateStoreInterface<TState, ActionPayloads> {
+	setState: (state?: Partial<TState>, options?: ActionOptions) => void;
+	getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S;
+	addCallback: (cb: Function) => void;
+	removeCallback: (cb: Function) => void;
+	addReducer: (name: StateStore.StoreActionsName<ActionPayloads>, reducer: unknown) => void;
+  removeReducer: (name: StateStore.StoreActionsName<ActionPayloads>, reducer: unknown) => void;
+  getDispatch: () => StateStore.StoreActions<ActionPayloads>;
+  withState: (selector: MapStateToProps, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
+}
+
+function StateStore<TState, ActionPayloads>(
+	this: StateStoreInterface<TState, ActionPayloads>,
 	initialState?: TState | undefined
 ) {
 
@@ -23,7 +35,7 @@ function StateStore<TState extends AnyLiteral, ActionPayloads>(
 			) => TState | void | Promise<void>;
 		};
 	type Containers = Map<string, {
-		selector: (state: TState) => Partial<TState>;
+		selector: (state: TState, ownProps?: AnyLiteral) => Partial<TState>;
 		ownProps?: AnyLiteral | undefined;
 		mappedProps?: AnyLiteral | undefined;
 		callback: Function;
@@ -34,6 +46,55 @@ function StateStore<TState extends AnyLiteral, ActionPayloads>(
 	let reducers: ActionHandlers = {} as ActionHandlers;
 	let actions: Actions = {} as Actions;
 	let containers: Containers = new Map();
+
+	this.setState = (state = {}, options = {}) => {
+		if (typeof state === "object" && state !== currentState) {
+			currentState = state as TState;
+			if (options?.silent) return; // if silent -> no callbacks
+			runCallbacks();
+		}
+	}
+
+	this.getState = (selector) => selector(currentState as TState);
+
+	const updateContainers = (currentState: TState) => {
+		for (const container of containers.values()) {
+			const { selector, ownProps, mappedProps, callback } = container;
+
+			let newMappedProps;
+
+			try {
+				newMappedProps = selector(currentState, ownProps);
+			} catch (err) {
+				console.error(">> GSTATE", "CONTAINER\n", "UPDATE",
+					"Чёт наебнулось, но всем как-то похуй, да?\n",
+					"Может трейс глянешь хоть:\n", err);
+				return;
+			}
+
+			if (Object.keys(newMappedProps).length && !shallowEqual(mappedProps, newMappedProps)) {
+				container.mappedProps = newMappedProps;
+				callback(container.mappedProps);
+			}
+		}
+	};
+
+	const callbacks: Function[] = [updateContainers];
+	const addCallback = (cb: Function) => {
+		if (typeof cb === "function") {
+			callbacks.push(cb);
+		}
+	};
+	const removeCallback = (cb: Function) => {
+		const index = callbacks.indexOf(cb);
+		if (index !== -1) {
+			callbacks.splice(index, 1);
+		}
+	};
+	const runCallbacks = () => {
+		//console.debug("run callbacks", callbacks)
+		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState) : null);
+	};
 
 };
 
