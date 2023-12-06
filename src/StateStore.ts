@@ -2,9 +2,42 @@ import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
 import { ActionOptions, ActionPayload, MapStateToProps } from "types";
 
+function StateStore<TState extends AnyLiteral, ActionPayloads>(
+	initialState?: TState | undefined
+) {
 
+	type ActionNames = keyof ActionPayloads;
+	type Actions = {
+		[ActionName in ActionNames]:
+		(undefined extends ActionPayloads[ActionName] ? (
+			(payload?: ActionPayloads[ActionName], options?: ActionOptions) => void
+		) : (
+				(payload: ActionPayloads[ActionName], options?: ActionOptions) => void
+			))
+	};
+	type ActionHandlers = {
+		[ActionName in keyof ActionPayloads]: (
+			global: TState,
+      actions: Actions,
+      payload: ActionPayloads[ActionName],
+			) => TState | void | Promise<void>;
+		};
+	type Containers = Map<string, {
+		selector: (state: TState) => Partial<TState>;
+		ownProps?: AnyLiteral | undefined;
+		mappedProps?: AnyLiteral | undefined;
+		callback: Function;
+		debug?: AnyLiteral | string;
+	}>;
 
-export class StateStore<TState extends AnyLiteral, ActionPayloads> {
+	let currentState: TState | undefined = initialState as TState | undefined;
+	let reducers: ActionHandlers = {} as ActionHandlers;
+	let actions: Actions = {} as Actions;
+	let containers: Containers = new Map();
+
+};
+
+export class StateStore0<TState extends AnyLiteral, ActionPayloads> {
 
 	private currentState: TState = {} as TState;
 
