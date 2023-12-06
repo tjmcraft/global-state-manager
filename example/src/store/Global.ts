@@ -7,7 +7,7 @@ export type GlobalState = {
 
 export interface ActionPayloads {
 	init: undefined;
-	setCount: undefined;
+	setCount: number;
 };
 
 const INITIAL_STATE: GlobalState = { count: 0 };
