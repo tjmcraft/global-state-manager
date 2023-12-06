@@ -7,10 +7,10 @@ interface StateStoreInterface<TState, ActionPayloads> {
 	getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S;
 	addCallback: (cb: Function) => void;
 	removeCallback: (cb: Function) => void;
-	addReducer: (name: StateStore.StoreActionsName<ActionPayloads>, reducer: unknown) => void;
-  removeReducer: (name: StateStore.StoreActionsName<ActionPayloads>, reducer: unknown) => void;
-  getDispatch: () => StateStore.StoreActions<ActionPayloads>;
-  withState: (selector: MapStateToProps, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
+	addReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
+  removeReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
+  getDispatch: () => unknown;
+  withState: (selector: AnyFunction, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
 }
 
 function StateStore<TState, ActionPayloads>(
@@ -27,13 +27,16 @@ function StateStore<TState, ActionPayloads>(
 				(payload: ActionPayloads[ActionName], options?: ActionOptions) => void
 			))
 	};
+	type ActionHandler<ActionName extends ActionNames> = (
+		global: TState,
+		actions: Actions,
+		payload: ActionPayloads[ActionName],
+	) => TState | void | Promise<void>;
 	type ActionHandlers = {
-		[ActionName in keyof ActionPayloads]: (
-			global: TState,
-      actions: Actions,
-      payload: ActionPayloads[ActionName],
-			) => TState | void | Promise<void>;
-		};
+		[ActionName in ActionNames]: ActionHandler<ActionName> | never[];
+
+	};
+
 	type Containers = Map<string, {
 		selector: (state: TState, ownProps?: AnyLiteral) => Partial<TState>;
 		ownProps?: AnyLiteral | undefined;
@@ -80,12 +83,12 @@ function StateStore<TState, ActionPayloads>(
 	};
 
 	const callbacks: Function[] = [updateContainers];
-	const addCallback = (cb: Function) => {
+	this.addCallback = (cb: Function) => {
 		if (typeof cb === "function") {
 			callbacks.push(cb);
 		}
 	};
-	const removeCallback = (cb: Function) => {
+	this.removeCallback = (cb: Function) => {
 		const index = callbacks.indexOf(cb);
 		if (index !== -1) {
 			callbacks.splice(index, 1);
@@ -94,6 +97,72 @@ function StateStore<TState, ActionPayloads>(
 	const runCallbacks = () => {
 		//console.debug("run callbacks", callbacks)
 		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState) : null);
+	};
+
+	const onDispatch = (name: ActionNames, payload?: ActionPayload, options?: ActionOptions) => {
+		if (reducers[name]) { // if reducers for this name exists
+			reducers[name].forEach((reducer) => {
+				const response = reducer(currentState, actions, payload);
+				if (!response || typeof response.then === "function") {
+					return response;
+				}
+				this.setState(response as TState, options);
+			});
+		}
+	};
+
+	this.addReducer = <T extends ActionNames>(name: T, reducer: ActionHandler<T>) => {
+		if (!reducers[name]) { // if no reducers for this name
+			reducers[name] = []; // create empty
+			actions[name] = (payload?: ActionPayload, options?: ActionOptions) => // add dispatch action
+				onDispatch(name, payload, options);
+		}
+		reducers[name].push(reducer);
+	};
+
+	this.removeReducer = (name, reducer) => {
+		if (!reducers[name]) return;
+		const index = reducers[name].indexOf(reducer);
+		if (index !== -1) {
+			reducers[name].splice(index, 1);
+		}
+	};
+
+	this.getDispatch = () => actions as Actions;
+
+
+	this.withState = (
+		selector: (state: TState, ownProps?: AnyLiteral) => Partial<TState>,
+		debug?: AnyLiteral | undefined
+	) => {
+		return (callback: Function) => {
+			const id = generateIdFor(containers);
+			let container = containers.get(id);
+			if (!container) {
+				container = {
+					selector,
+					callback,
+					mappedProps: undefined,
+					debug: debug || id,
+				};
+				containers.set(id, container);
+			}
+			if (!container.mappedProps) {
+				try {
+					container.mappedProps = selector(currentState as TState);
+				} catch (err) {
+					console.error(">> GSTATE", "CONTAINER\n", "INITIAL UPDATE",
+						"Чёт наебнулось в первый раз, но всем как-то похуй, да?\n",
+						"Может трейс глянешь хоть:\n", err);
+					return;
+				}
+			}
+			callback(container.mappedProps);
+			return () => {
+				console.debug("[withState]", "{GC}", "container", "->", id);
+				containers.delete(id);
+			};
+		};
 	};
 
 };
