@@ -2,7 +2,7 @@ import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
 import { ActionOptions } from "types";
 
-export default function StateStore<TState, ActionPayloads>(
+export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<string, any>>(
 	initialState?: TState | undefined
 ) {
 
