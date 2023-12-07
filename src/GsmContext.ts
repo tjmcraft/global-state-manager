@@ -1,8 +1,8 @@
 import { createContext } from "react";
-import type { StateStore } from "StateStore";
+import { Store } from "StateStore";
 
 export interface ReactGSMContextValue<S extends AnyLiteral = any, A = unknown> {
-	store: StateStore<S,A>;
+	store: Store<S,A>;
 }
 
 export const ReactGSMContext = createContext<ReactGSMContextValue | null>(null as any);

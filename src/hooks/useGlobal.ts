@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { shallowEqual, stacksDiff, stacksEqual } from "Util/Iterates";
 import { randomString } from "Util/Random";
-import { GlobalState, MapStateToProps } from "types";
+import { GlobalState } from "types";
 import useForceUpdate from "./useForceUpdate";
 import useGsmContext from "./useGsmContext";
 

@@ -1,19 +1,9 @@
 export type GlobalState = AnyLiteral;
-export type ActionNames = string;
-export type ActionPayload = any;
+
 
 export interface ActionOptions {
 	silent?: boolean;
 }
-export type Actions = Record<ActionNames, (payload?: ActionPayload, options?: ActionOptions) => void>;
-
-export type ActionHandler = (
-  global: GlobalState,
-  actions: Actions,
-  payload: ActionPayload,
-) => GlobalState | void | Promise<void>;
-
-export type MapStateToProps<OwnProps = AnyLiteral> = (global: GlobalState, ownProps?: OwnProps) => Partial<GlobalState>;
 
 export interface Storage {
   getItem(key: string, ...args: Array<any>): any;
@@ -36,4 +26,15 @@ export interface WebStorage extends Storage {
    * @desc Removes value for key.
    */
   removeItem(key: string): Promise<void>;
+}
+
+interface Store<TState, ActionPayloads> {
+	setState: (state?: Partial<TState>, options?: ActionOptions) => void;
+	getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S;
+	addCallback: (cb: Function) => void;
+	removeCallback: (cb: Function) => void;
+	addReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
+  removeReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
+  getDispatch: () => unknown;
+  withState: (selector: AnyFunction, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
 }

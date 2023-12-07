@@ -1,5 +1,4 @@
 import { StateStore, useGlobal } from 'global-state-manager';
-import type { ActionNames, ActionOptions, Actions } from 'global-state-manager';
 
 export type GlobalState = {
 	count: number
@@ -12,7 +11,9 @@ export interface ActionPayloads {
 
 const INITIAL_STATE: GlobalState = { count: 0 };
 
-export const stateStore = new StateStore<GlobalState,ActionPayloads>();
+export const stateStore = StateStore<GlobalState, ActionPayloads>();
+
+stateStore.getDispatch();
 
 stateStore.addReducer("init", () => {
 	const initial = Object.assign({}, INITIAL_STATE);
