@@ -1,11 +1,10 @@
 import { throttle } from "Util/Schedules";
 import { pick } from "Util/Iterates";
 
-import { StateStoreInterface } from "StateStore";
-import { GlobalState, Storage } from "types";
+import { GlobalState, Storage, Store } from "types";
 
 export const StoreCaching = <T extends AnyLiteral,A>(
-	store: StateStoreInterface<T,A>,
+	store: Store<T,A>,
 	initialState: T,
 	cachingKeys: Array<keyof T>,
 	storage: Storage,

@@ -1,20 +1,8 @@
 import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
-import { ActionOptions, ActionPayload, MapStateToProps } from "types";
-
-export interface StateStoreInterface<TState, ActionPayloads> {
-	setState: (state?: Partial<TState>, options?: ActionOptions) => void;
-	getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S;
-	addCallback: (cb: Function) => void;
-	removeCallback: (cb: Function) => void;
-	addReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
-  removeReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
-  getDispatch: () => unknown;
-  withState: (selector: AnyFunction, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
-}
+import { ActionOptions, Store } from "types";
 
 export default function StateStore<TState, ActionPayloads>(
-	this: StateStoreInterface<TState, ActionPayloads>,
 	initialState?: TState | undefined
 ) {
 
@@ -27,14 +15,14 @@ export default function StateStore<TState, ActionPayloads>(
 				(payload: ActionPayloads[ActionName], options?: ActionOptions) => void
 			))
 	};
+	type ActionPayload<ActionName extends ActionNames> = ActionPayloads[ActionName];
 	type ActionHandler<ActionName extends ActionNames> = (
 		global: TState,
 		actions: Actions,
-		payload: ActionPayloads[ActionName],
+		payload: ActionPayload<ActionName>,
 	) => TState | void | Promise<void>;
 	type ActionHandlers = {
 		[ActionName in ActionNames]: ActionHandler<ActionName>[];
-
 	};
 
 	type Containers = Map<string, {
@@ -50,7 +38,7 @@ export default function StateStore<TState, ActionPayloads>(
 	let actions: Actions = {} as Actions;
 	let containers: Containers = new Map();
 
-	this.setState = (state = {}, options = {}) => {
+	const setState: (state?: Partial<TState>, options?: ActionOptions) => void = (state = {}, options = {}) => {
 		if (typeof state === "object" && state !== currentState) {
 			currentState = state as TState;
 			if (options?.silent) return; // if silent -> no callbacks
@@ -58,7 +46,7 @@ export default function StateStore<TState, ActionPayloads>(
 		}
 	}
 
-	this.getState = (selector) => selector(currentState as TState);
+	const getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S = (selector) => selector(currentState as TState);
 
 	const updateContainers = (currentState: TState) => {
 		for (const container of containers.values()) {
@@ -83,12 +71,12 @@ export default function StateStore<TState, ActionPayloads>(
 	};
 
 	const callbacks: Function[] = [updateContainers];
-	this.addCallback = (cb: Function) => {
+	const addCallback = (cb: Function) => {
 		if (typeof cb === "function") {
 			callbacks.push(cb);
 		}
 	};
-	this.removeCallback = (cb: Function) => {
+	const removeCallback = (cb: Function) => {
 		const index = callbacks.indexOf(cb);
 		if (index !== -1) {
 			callbacks.splice(index, 1);
@@ -99,28 +87,28 @@ export default function StateStore<TState, ActionPayloads>(
 		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState) : null);
 	};
 
-	const onDispatch = (name: ActionNames, payload?: ActionPayload, options?: ActionOptions) => {
+	const onDispatch = <T extends ActionNames>(name: T, payload?: ActionPayload<T>, options?: ActionOptions) => {
 		if (Array.isArray(reducers[name])) { // if reducers for this name exists
 			reducers[name].forEach((reducer) => {
-				const response = reducer(currentState as TState, actions, payload);
+				const response = reducer(currentState as TState, actions, payload as ActionPayload<T>);
 				if (!response || typeof (response as Promise<void>).then === "function") {
 					return response;
 				}
-				this.setState(response as TState, options);
+				setState(response as TState, options);
 			});
 		}
 	};
 
-	this.addReducer = <T extends ActionNames>(name: T, reducer: ActionHandler<T>) => {
+	const addReducer = <T extends ActionNames>(name: T, reducer: ActionHandler<T>) => {
 		if (!reducers[name]) { // if no reducers for this name
 			reducers[name] = [];
-			actions[name] = (payload?: ActionPayload, options?: ActionOptions) => // add dispatch action
+			actions[name] = (payload?: ActionPayload<T>, options?: ActionOptions) => // add dispatch action
 				onDispatch(name, payload, options);
 		}
 		reducers[name].push(reducer);
 	};
 
-	this.removeReducer = (name, reducer) => {
+	const removeReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void = (name, reducer) => {
 		if (!reducers[name]) return;
 		const index = reducers[name].indexOf(reducer);
 		if (index !== -1) {
@@ -128,10 +116,10 @@ export default function StateStore<TState, ActionPayloads>(
 		}
 	};
 
-	this.getDispatch = () => actions as Actions;
+	const getDispatch = () => actions as Actions;
 
 
-	this.withState = (
+	const withState = (
 		selector: (state: TState, ownProps?: AnyLiteral) => Partial<TState>,
 		debug?: AnyLiteral | undefined
 	) => {
@@ -165,4 +153,14 @@ export default function StateStore<TState, ActionPayloads>(
 		};
 	};
 
+	return {
+		setState,
+		getState,
+		addCallback,
+		removeCallback,
+		addReducer,
+		removeReducer,
+		getDispatch,
+		withState,
+	};
 };

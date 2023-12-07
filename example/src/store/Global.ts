@@ -12,7 +12,9 @@ export interface ActionPayloads {
 
 const INITIAL_STATE: GlobalState = { count: 0 };
 
-export const stateStore = new StateStore<GlobalState,ActionPayloads>();
+export const stateStore = StateStore<GlobalState, ActionPayloads>();
+
+stateStore.getDispatch();
 
 stateStore.addReducer("init", () => {
 	const initial = Object.assign({}, INITIAL_STATE);
