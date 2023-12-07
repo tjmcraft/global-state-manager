@@ -1,5 +1,4 @@
 import { StateStore, useGlobal } from 'global-state-manager';
-import type { ActionNames, ActionOptions, Actions } from 'global-state-manager';
 
 export type GlobalState = {
 	count: number
