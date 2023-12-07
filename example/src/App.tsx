@@ -1,18 +1,19 @@
 import React from "react";
-import { StateStore, Provider } from "global-state-manager";
-import Main from "./Main";
-import { getDispatch, stateStore } from "./store/Global";
-
-getDispatch().init();
+import { getDispatch, useAppGlobal } from "./store/Global";
 
 const App = () => {
-	return (
-		<Provider store={stateStore}>
-			<div className="app">
-				<Main />
-			</div>
-		</Provider>
-	);
+	const count = useAppGlobal(e => e.count);
+  const { setCount } = getDispatch();
+  const handleIncrement = () => setCount(count + 1);
+  const handleDecrement = () => setCount(count - 1);
+  console.log('>>render main')
+  return (
+    <div className="app">
+      <h1>state: {count}</h1>
+      <button onClick={handleIncrement}>+</button>
+      <button onClick={handleDecrement}>-</button>
+    </div>
+  );
 };
 
 export default App;
