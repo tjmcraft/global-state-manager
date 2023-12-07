@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { shallowEqual, stacksDiff, stacksEqual } from "Util/Iterates";
 import { randomString } from "Util/Random";
-import { GlobalState } from "types";
+
 import useForceUpdate from "./useForceUpdate";
 import useGsmContext from "./useGsmContext";
 
 const updateContainer = <T,S>(selector: (state:T) => S, callback: Function, options: PickOptions) => {
-	return (global: GlobalState): S =>
-		callback((prevState: GlobalState) => {
+	return (global: T): S =>
+		callback((prevState: T) => {
 
 			let nextState;
 			try {
@@ -64,7 +64,7 @@ type PickOptions = {
 	label?: string;
 }
 
-const useGlobal = <TState, Selected>(
+const useGlobal = <TState = AnyLiteral, Selected = Partial<TState>>(
 	selector: (state: TState) => Selected,
 	inputs: React.DependencyList = [],
 	options: PickOptions = {}

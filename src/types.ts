@@ -1,6 +1,3 @@
-export type GlobalState = AnyLiteral;
-
-
 export interface ActionOptions {
 	silent?: boolean;
 }
@@ -28,13 +25,8 @@ export interface WebStorage extends Storage {
   removeItem(key: string): Promise<void>;
 }
 
-interface Store<TState, ActionPayloads> {
-	setState: (state?: Partial<TState>, options?: ActionOptions) => void;
-	getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S;
-	addCallback: (cb: Function) => void;
-	removeCallback: (cb: Function) => void;
-	addReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
-  removeReducer: (name: keyof ActionPayloads, reducer: AnyFunction) => void;
-  getDispatch: () => unknown;
-  withState: (selector: AnyFunction, debug?: AnyLiteral | undefined) => (callback: Function) => (() => void) | undefined;
+export interface TypedUseSelectorHook<TState> {
+  <TSelected>(
+    selector: (state: TState) => TSelected,
+  ): TSelected
 }

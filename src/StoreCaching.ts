@@ -2,7 +2,7 @@ import { throttle } from "Util/Schedules";
 import { pick } from "Util/Iterates";
 import { Store } from "StateStore";
 
-import { GlobalState, Storage } from "types";
+import { Storage } from "types";
 
 export const StoreCaching = <T, A>(
 	store: Store<T, A>,
@@ -37,12 +37,12 @@ export const StoreCaching = <T, A>(
 		clearCaching();
 	};
 
-	const loadCache = async (initialState: GlobalState) => {
+	const loadCache = async (initialState: T) => {
 		setupCaching();
 		return await readCache(initialState);
 	};
 
-	const readCache = async (initialState: GlobalState) => {
+	const readCache = async (initialState: T) => {
 		const json = await storage.getItem(STATE_CACHE_KEY);
 		const cached = json ? JSON.parse(json) : undefined;
 		const newState = {
