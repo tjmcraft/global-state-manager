@@ -1,6 +1,6 @@
 import { shallowEqual } from "Util/Iterates";
 import { generateIdFor } from "Util/Random";
-import { ActionOptions, Store } from "types";
+import { ActionOptions } from "types";
 
 export default function StateStore<TState, ActionPayloads>(
 	initialState?: TState | undefined
@@ -164,3 +164,5 @@ export default function StateStore<TState, ActionPayloads>(
 		withState,
 	};
 };
+
+export type Store<T, A> = ReturnType<typeof StateStore<T, A>>;

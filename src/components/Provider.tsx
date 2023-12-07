@@ -1,7 +1,7 @@
 import React from "react";
 import type { ReactNode, Context } from "react";
 import ReactGSMContext, { ReactGSMContextValue } from "GsmContext";
-import { Store } from "types";
+import { Store } from "StateStore";
 
 export interface ProviderProps<S extends AnyLiteral, A> {
 	store: Store<S, A>,

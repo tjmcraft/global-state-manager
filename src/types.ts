@@ -28,7 +28,7 @@ export interface WebStorage extends Storage {
   removeItem(key: string): Promise<void>;
 }
 
-export interface Store<TState, ActionPayloads> {
+interface Store<TState, ActionPayloads> {
 	setState: (state?: Partial<TState>, options?: ActionOptions) => void;
 	getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S;
 	addCallback: (cb: Function) => void;
