@@ -76,12 +76,8 @@ const INITIAL_STATE: GlobalState = { count: 0 };
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>();
 
-stateStore.getDispatch();
-
 stateStore.addReducer("init", () => {
- const initial = Object.assign({}, INITIAL_STATE);
- const state = initial;
- return state;
+ return Object.assign({}, INITIAL_STATE);
 });
 
 stateStore.addReducer("setCount", (global, _actions, payload) => {
