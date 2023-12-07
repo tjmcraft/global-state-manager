@@ -33,7 +33,7 @@ function StateStore<TState, ActionPayloads>(
 		payload: ActionPayloads[ActionName],
 	) => TState | void | Promise<void>;
 	type ActionHandlers = {
-		[ActionName in ActionNames]: ActionHandler<ActionName> | never[];
+		[ActionName in ActionNames]: ActionHandler<ActionName>[];
 
 	};
 
@@ -100,10 +100,10 @@ function StateStore<TState, ActionPayloads>(
 	};
 
 	const onDispatch = (name: ActionNames, payload?: ActionPayload, options?: ActionOptions) => {
-		if (reducers[name]) { // if reducers for this name exists
+		if (Array.isArray(reducers[name])) { // if reducers for this name exists
 			reducers[name].forEach((reducer) => {
-				const response = reducer(currentState, actions, payload);
-				if (!response || typeof response.then === "function") {
+				const response = reducer(currentState as TState, actions, payload);
+				if (!response || typeof (response as Promise<void>).then === "function") {
 					return response;
 				}
 				this.setState(response as TState, options);
@@ -113,7 +113,7 @@ function StateStore<TState, ActionPayloads>(
 
 	this.addReducer = <T extends ActionNames>(name: T, reducer: ActionHandler<T>) => {
 		if (!reducers[name]) { // if no reducers for this name
-			reducers[name] = []; // create empty
+			reducers[name] = [];
 			actions[name] = (payload?: ActionPayload, options?: ActionOptions) => // add dispatch action
 				onDispatch(name, payload, options);
 		}
