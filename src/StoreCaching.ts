@@ -1,17 +1,18 @@
 import { throttle } from "Util/Schedules";
 import { pick } from "Util/Iterates";
-import { StateStore } from "StateStore";
+
+import { StateStoreInterface } from "StateStore";
 import { GlobalState, Storage } from "types";
 
 export const StoreCaching = <T extends AnyLiteral,A>(
-	store: StateStore<T,A>,
+	store: StateStoreInterface<T,A>,
 	initialState: T,
 	cachingKeys: Array<keyof T>,
 	storage: Storage,
 	cache_key: string = "tjmc.global.state"
 ) => {
 
-	if (typeof store != "object" || !(store instanceof StateStore)) throw new Error("Caching store in not instance of StateStore");
+	if (typeof store != "object") throw new Error("Caching store in not instance of StateStore");
 
 	const STATE_CACHE_KEY = cache_key;
 	const INITIAL_STATE = initialState;

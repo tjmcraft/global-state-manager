@@ -1,10 +1,10 @@
 import React from "react";
 import type { ReactNode, Context } from "react";
 import ReactGSMContext, { ReactGSMContextValue } from "GsmContext";
-import type { StateStore } from "StateStore";
+import type { StateStoreInterface } from "StateStore";
 
 export interface ProviderProps<S extends AnyLiteral, A> {
-	store: StateStore<S, A>,
+	store: StateStoreInterface<S, A>,
 	context?: Context<ReactGSMContextValue | null>,
 	children: ReactNode,
 }
