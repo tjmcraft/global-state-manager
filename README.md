@@ -1,7 +1,9 @@
 # global-state-manager
+
 Global State Manager for React
 
 ## Installation
+
 ```bash
 npm install --save-dev global-state-manager
 ```
@@ -11,6 +13,7 @@ npm install --save-dev global-state-manager
 ### In React Project
 
 In `index.tsx`:
+
 ```typescript
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -25,18 +28,20 @@ const root = createRoot(document.getElementById('app-root')!);
 getDispatch().init();
 
 root.render(
-	<Provider store={stateStore}>
-		<App />
-	</Provider>
+ <Provider store={stateStore}>
+  <App />
+ </Provider>
 );
 ```
+
 In `App.tsx`:
+
 ```typescript
 import React from "react";
 import { getDispatch, useAppGlobal } from "./store/Global";
 
 const App = () => {
-	const count = useAppGlobal(e => e.count);
+ const count = useAppGlobal(e => e.count);
   const { setCount } = getDispatch();
   const handleIncrement = () => setCount(count + 1);
   const handleDecrement = () => setCount(count - 1);
@@ -52,17 +57,19 @@ const App = () => {
 
 export default App;
 ```
+
 In `store/Global.ts`:
+
 ```typescript
 import { StateStore, TypedUseSelectorHook, useGlobal } from 'global-state-manager';
 
 export type GlobalState = {
-	count: number
+ count: number
 }
 
 export interface ActionPayloads {
-	init: undefined;
-	setCount: number;
+ init: undefined;
+ setCount: number;
 };
 
 const INITIAL_STATE: GlobalState = { count: 0 };
@@ -72,16 +79,16 @@ export const stateStore = StateStore<GlobalState, ActionPayloads>();
 stateStore.getDispatch();
 
 stateStore.addReducer("init", () => {
-	const initial = Object.assign({}, INITIAL_STATE);
-	const state = initial;
-	return state;
+ const initial = Object.assign({}, INITIAL_STATE);
+ const state = initial;
+ return state;
 });
 
 stateStore.addReducer("setCount", (global, _actions, payload) => {
-	return {
-		...global,
-		count: payload,
-	};
+ return {
+  ...global,
+  count: payload,
+ };
 });
 
 export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
