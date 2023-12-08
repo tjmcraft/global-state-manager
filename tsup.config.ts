@@ -23,6 +23,13 @@ export default defineConfig((options) => {
       dts: true,
       clean: true,
     },
+    {
+      ...commonOptions,
+      format: ['cjs'],
+      outExtension: () => ({ js: '.cjs' }),
+      dts: true,
+      clean: true,
+    },
     // Support Webpack 4 by pointing `"module"` to a file with a `.js` extension
     {
       ...commonOptions,
