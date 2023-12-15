@@ -25,8 +25,16 @@ export interface WebStorage extends Storage {
   removeItem(key: string): Promise<void>;
 }
 
+export type PickOptions = {
+  debugPicker?: boolean;
+  debugPicked?: boolean;
+  label?: string;
+};
+
 export interface TypedUseSelectorHook<TState> {
-  <TSelected>(
-    selector: (state: TState) => TSelected,
-  ): TSelected
+  <Selected>(
+    selector: (state: TState) => Selected,
+    inputs?: React.DependencyList,
+    options?: PickOptions,
+  ): Selected;
 }

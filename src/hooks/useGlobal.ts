@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { shallowEqual, stacksDiff, stacksEqual } from "Util/Iterates";
 import { randomString } from "Util/Random";
 
+import type { PickOptions } from "types";
 import useForceUpdate from "./useForceUpdate";
 import useGsmContext from "./useGsmContext";
 
-const updateContainer = <T,S>(selector: (state:T) => S, callback: Function, options: PickOptions) => {
+const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, options: PickOptions) => {
 	return (global: T): S =>
 		callback((prevState: T) => {
 
@@ -57,12 +58,6 @@ const updateContainer = <T,S>(selector: (state:T) => S, callback: Function, opti
 			return prevState;
 		});
 };
-
-type PickOptions = {
-	debugPicker?: boolean;
-	debugPicked?: boolean;
-	label?: string;
-}
 
 const useGlobal = <TState = AnyLiteral, Selected = Partial<TState>>(
 	selector: (state: TState) => Selected,
