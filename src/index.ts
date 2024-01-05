@@ -1,6 +1,6 @@
-import useStore from 'Hooks/useStore';
-import useGlobal from 'Hooks/useGlobal';
-import Provider from 'Components/Provider';
+import useStore from './hooks/useStore';
+import useGlobal from './hooks/useGlobal';
+import Provider from './components/Provider';
 import StateStore from 'StateStore';
 import { Store } from 'StateStore';
 

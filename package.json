@@ -3,7 +3,8 @@
   "version": "0.0.21",
   "description": "Global State Manager for React",
   "scripts": {
-    "build": "rimraf dist && tsup"
+    "build": "rimraf dist && tsup",
+    "typescript": "tsc --noEmit --project tsconfig.json"
   },
   "repository": {
     "type": "git",

@@ -8,7 +8,7 @@
     "skipLibCheck": true,
     "jsx": "react",
     "declaration": true,
-    "emitDeclarationOnly": true,
+    // "emitDeclarationOnly": true,
     // "declarationDir": "dist",
     "outDir": "./es",
     "forceConsistentCasingInFileNames": true,
@@ -16,13 +16,6 @@
     "allowSyntheticDefaultImports": true,
     "rootDir": "./src",
     "baseUrl": "./src",
-    "paths": {
-      "Util/*": ["Util/*"],
-      "CSS/*": ["assets/css/*"],
-      "Components/*": ["components/*"],
-      "Model/*": ["Model/*"],
-      "Hooks/*": ["hooks/*"],
-    },
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test/**/*"]
