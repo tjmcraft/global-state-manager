@@ -53,8 +53,11 @@
   "module": "dist/global-state-manager.legacy-esm.js",
   "main": "dist/global-state-manager.cjs",
   "types": "dist/global-state-manager.d.ts",
+  "react-native": "src/index",
+  "source": "src/index",
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
   "exports": {
     "./package.json": "./package.json",
@@ -64,6 +67,5 @@
       "default": "./dist/global-state-manager.cjs"
     }
   },
-  "sideEffects": false,
-  "type": "module"
+  "sideEffects": false
 }
