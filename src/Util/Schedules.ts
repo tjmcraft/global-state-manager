@@ -1,4 +1,3 @@
-
 export function debounce<F extends AnyToVoidFunction>(
 	fn: F,
 	ms: number,

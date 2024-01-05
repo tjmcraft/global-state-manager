@@ -1,8 +1,5 @@
 import { defineConfig, Options } from 'tsup'
 
-import path from 'path'
-import fs from 'fs'
-
 // @ts-ignore
 export default defineConfig((options) => {
 

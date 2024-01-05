@@ -1,4 +1,4 @@
-import ReactGSMContext from "GsmContext";
+import ReactGSMContext from "../GsmContext";
 import React from "react";
 
 

@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { Store } from "StateStore";
+import { Store } from "./StateStore";
 
 export interface ReactGSMContextValue<S extends AnyLiteral = any, A = unknown> {
 	store: Store<S,A>;

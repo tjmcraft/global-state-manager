@@ -14,9 +14,13 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "rootDir": "./src",
-    "baseUrl": "./src",
+    "baseUrl": "./",
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noImplicitUseStrict": false,
+    "noStrictGenericChecks": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "test/**/*"]
+  "exclude": ["node_modules", "dist", "test/**/*", "example"]
 }

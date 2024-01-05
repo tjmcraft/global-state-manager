@@ -1,4 +1,4 @@
-import { Storage } from "types";
+import { Storage } from "../types";
 
 function noop() {}
 const noopStorage = {

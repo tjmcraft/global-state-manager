@@ -1,8 +1,8 @@
-import { throttle } from "Util/Schedules";
-import { pick } from "Util/Iterates";
-import { Store } from "StateStore";
+import { throttle } from "./Util/Schedules";
+import { pick } from "./Util/Iterates";
+import { Store } from "./StateStore";
 
-import { Storage } from "types";
+import { Storage } from "./types";
 
 export const StoreCaching = <T, A>(
 	store: Store<T, A>,

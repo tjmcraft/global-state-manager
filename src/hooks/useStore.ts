@@ -1,4 +1,4 @@
-import { Store } from "StateStore";
+import { Store } from "../StateStore";
 import useGsmContext from "./useGsmContext";
 
 const useStore = <S extends AnyLiteral, Action>() => {
