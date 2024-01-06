@@ -1,5 +1,5 @@
 export interface ActionOptions {
-	silent?: boolean;
+  silent?: boolean;
 }
 
 export interface Storage {
@@ -35,6 +35,13 @@ export interface TypedUseSelectorHook<TState> {
   <Selected>(
     selector: (state: TState) => Selected,
     inputs?: React.DependencyList,
-    options?: PickOptions,
+    options?: PickOptions
+  ): Selected;
+}
+
+export interface TypedUseStaticHook<TState> {
+  <Selected>(
+    selector: (state: TState) => Selected,
+    inputs?: React.DependencyList
   ): Selected;
 }
