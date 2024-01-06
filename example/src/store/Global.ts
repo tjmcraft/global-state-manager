@@ -1,30 +1,45 @@
-import { StateStore, TypedUseSelectorHook, useGlobal } from 'global-state-manager';
+import {
+  StateStore,
+  TypedUseSelectorHook,
+  TypedUseStaticHook,
+  useGlobal,
+  useStaticGlobal,
+} from "global-state-manager";
 
 export type GlobalState = {
-	count: number
-}
-
-export interface ActionPayloads {
-	init: undefined;
-	setCount: number;
+  count: number;
+  static: Record<string, any>;
 };
 
-const INITIAL_STATE: GlobalState = { count: 0 };
+export interface ActionPayloads {
+  init: undefined;
+  setCount: number;
+}
+
+const INITIAL_STATE: GlobalState = {
+  count: 0,
+  static: {
+    "0": "first",
+    "1": { two: 2 },
+    "2": { three: 3 },
+  },
+};
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>();
 
 stateStore.addReducer("init", () => {
-	return Object.assign({}, INITIAL_STATE);
+  return Object.assign({}, INITIAL_STATE);
 });
 
 stateStore.addReducer("setCount", (global, _actions, payload) => {
-	return {
-		...global,
-		count: payload,
-	};
+  return {
+    ...global,
+    count: payload,
+  };
 });
 
 export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
+export const useStatic: TypedUseStaticHook<GlobalState> = useStaticGlobal;
 
 export const getDispatch = stateStore.getDispatch;
 export const getState = stateStore.getState;
