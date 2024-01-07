@@ -38,8 +38,8 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
   };
 });
 
-export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
-export const useStatic: TypedUseStaticHook<GlobalState> = useStaticGlobal;
+export const useAppGlobal = useGlobal as TypedUseSelectorHook<GlobalState>;
+export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;
 
 export const getDispatch = stateStore.getDispatch;
 export const getState = stateStore.getState;
