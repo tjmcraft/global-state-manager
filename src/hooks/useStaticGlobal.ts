@@ -1,3 +1,5 @@
+import type { TypedUseStaticHook } from "src/types";
+
 import { useCallback, useMemo, useRef } from "react";
 import useGsmContext from "./useGsmContext";
 
@@ -10,26 +12,25 @@ import useGsmContext from "./useGsmContext";
  * @param inputs Peer dependency list
  * @returns Selected state
  */
-const useStaticGlobal = <TState = AnyLiteral, Selected = Partial<TState>>(
-	selector: (state: TState) => Selected,
-	inputs: React.DependencyList = [],
-): Selected => {
+const useStaticGlobal: TypedUseStaticHook<AnyLiteral> = (
+  selector,
+  inputs = []
+) => {
+  const { store } = useGsmContext();
+  const mappedProps = useRef<ReturnType<typeof selector>>();
+  const picker = useCallback(selector, [selector, ...inputs]);
 
-	const { store } = useGsmContext();
-	const mappedProps = useRef<ReturnType<typeof selector>>();
-	const picker = useCallback(selector, [selector, ...inputs]);
+  useMemo(() => {
+    let nextState;
+    try {
+      nextState = store.getState(picker);
+    } catch (e) {
+      return undefined;
+    }
+    mappedProps.current = nextState;
+  }, [picker]);
 
-	useMemo(() => {
-		let nextState;
-		try {
-			nextState = store.getState(picker);
-		} catch (e) {
-			return undefined;
-		}
-		mappedProps.current = nextState;
-	}, [picker]);
-
-	return mappedProps.current as Selected;
+  return mappedProps.current;
 };
 
 export default useStaticGlobal;
