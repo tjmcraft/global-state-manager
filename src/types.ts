@@ -1,3 +1,5 @@
+import React from "react";
+
 export interface ActionOptions {
   silent?: boolean;
 }
@@ -45,3 +47,11 @@ export interface TypedUseStaticHook<TState> {
     inputs?: React.DependencyList
   ): Selected | undefined;
 }
+
+export type TypedConnector<EState extends AnyLiteral> = <
+  FState = EState,
+  OwnProps = AnyLiteral,
+  Selected = AnyLiteral & OwnProps
+>(
+  mapStateToProps: (global: FState, ownProps: OwnProps) => Selected
+) => (Component: React.FC<Selected>) => React.FC<OwnProps>;

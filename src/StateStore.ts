@@ -70,13 +70,15 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		}
 	};
 
-	const callbacks: Function[] = [updateContainers];
-	const addCallback = (cb: Function) => {
+	type StoreCallback = (global: TState) => void;
+
+	const callbacks: StoreCallback[] = [updateContainers];
+	const addCallback = (cb: StoreCallback) => {
 		if (typeof cb === "function") {
 			callbacks.push(cb);
 		}
 	};
-	const removeCallback = (cb: Function) => {
+	const removeCallback = (cb: StoreCallback) => {
 		const index = callbacks.indexOf(cb);
 		if (index !== -1) {
 			callbacks.splice(index, 1);
@@ -84,7 +86,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 	};
 	const runCallbacks = () => {
 		//console.debug("run callbacks", callbacks)
-		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState) : null);
+		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState as TState) : null);
 	};
 
 	const onDispatch = <T extends ActionNames>(name: T, payload?: ActionPayload<T>, options?: ActionOptions) => {

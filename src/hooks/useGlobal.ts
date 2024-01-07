@@ -25,6 +25,7 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 					!shallowEqual(prevState, nextState);
 
 				if (options.debugPicker) {
+					// prettier-ignore
 					console.debug(
 						"[picker]", "->", options.label,
 						"\n", "state", "=>", "picking",
@@ -46,6 +47,7 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 					shouldUpdate
 				) {
 					if (options.debugPicked) {
+						// prettier-ignore
 						console.debug(
 							"[picker]", "->", options.label,
 							"\n", "state", "=>", "picked!",
@@ -71,7 +73,6 @@ const useGlobal = <TState = AnyLiteral, Selected = Partial<TState>>(
 
 	const forceUpdate = useForceUpdate();
 	const mappedProps = useRef<ReturnType<typeof selector>>();
-
 	const picker = useCallback(selector, [selector, ...inputs]);
 
 	useMemo(() => {
