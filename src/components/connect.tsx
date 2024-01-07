@@ -4,8 +4,8 @@ import useGsmContext from "src/hooks/useGsmContext";
 import { TypedConnector } from "src/types";
 
 const connect = <
-  TState extends AnyLiteral,
   OwnProps extends AnyLiteral,
+  TState extends AnyLiteral,
   Selected extends AnyLiteral & OwnProps
 >(
   selector: (global: TState, props: OwnProps) => Selected

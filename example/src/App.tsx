@@ -31,7 +31,7 @@ const StaticDependency = ({ id = 1 }) => {
   );
 };
 
-const ConnectedComponent = connector((global, props) => {
+const ConnectedComponent = connector<{id:number}>((global, props) => {
   return ({
     counter: global.count,
     id: props.id,

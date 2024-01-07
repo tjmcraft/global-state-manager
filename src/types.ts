@@ -49,8 +49,8 @@ export interface TypedUseStaticHook<TState> {
 }
 
 export type TypedConnector<EState extends AnyLiteral> = <
-  FState = EState,
   OwnProps = AnyLiteral,
+  FState = EState,
   Selected = AnyLiteral & OwnProps
 >(
   mapStateToProps: (global: FState, ownProps: OwnProps) => Selected
