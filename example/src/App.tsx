@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { getDispatch, useAppGlobal, useStatic } from "./store/Global";
+import { connector, getDispatch, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
   const count = useAppGlobal((e) => e.count);
@@ -31,6 +31,19 @@ const StaticDependency = ({ id = 1 }) => {
   );
 };
 
+const ConnectedComponent = connector((global, props) => {
+  return ({
+    counter: global.count,
+    id: props.id,
+  })
+})(({counter}) => {
+  return (
+    <div className="connected-component">
+      <pre>{JSON.stringify(counter, null, 2)}</pre>
+    </div>
+  );
+});
+
 const App = () => {
   const count = useAppGlobal((e) => e.count);
   useEffect(() => {
@@ -40,6 +53,7 @@ const App = () => {
     <div className="app">
       <Counter />
       <StaticDependency id={Math.min(count, 2)} />
+      <ConnectedComponent id={2} />
     </div>
   );
 };

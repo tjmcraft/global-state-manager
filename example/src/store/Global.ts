@@ -1,7 +1,9 @@
 import {
   StateStore,
+  TypedConnector,
   TypedUseSelectorHook,
   TypedUseStaticHook,
+  connect,
   useGlobal,
   useStaticGlobal,
 } from "global-state-manager";
@@ -40,6 +42,7 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
 
 export const useAppGlobal = useGlobal as TypedUseSelectorHook<GlobalState>;
 export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;
+export const connector = connect as TypedConnector<GlobalState>;
 
 export const getDispatch = stateStore.getDispatch;
 export const getState = stateStore.getState;
