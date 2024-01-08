@@ -1,0 +1,8 @@
+.component {
+	border: 1px solid;
+	padding: 8px;
+	margin-bottom: 8px;
+}
+.component > h1 {
+	margin: 0;
+}

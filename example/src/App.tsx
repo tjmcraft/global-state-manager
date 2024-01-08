@@ -10,8 +10,8 @@ const Counter = () => {
     console.log(">>render Counter", count);
   }, [count]);
   return (
-    <div className="counter" style={{ border: "1px solid", padding: 8 }}>
-      <h1 style={{ margin: 0 }}>Counter</h1>
+    <div className="component counter">
+      <h1>Counter</h1>
       <h3>state: {count}</h3>
       <button onClick={handleIncrement}>+</button>
       <button onClick={handleDecrement}>-</button>
@@ -25,7 +25,8 @@ const StaticDependency = ({ id = 1 }) => {
     console.log(">>render Static", staticData);
   }, [staticData]);
   return (
-    <div className="static-dependency">
+    <div className="component static-dependency">
+      <h1>Static Dependency</h1>
       <pre>{JSON.stringify(staticData, null, 2)}</pre>
     </div>
   );
@@ -38,7 +39,8 @@ const ConnectedComponent = connector<{id:number}>((global, props) => {
   })
 })(({counter}) => {
   return (
-    <div className="connected-component">
+    <div className="component connected-component">
+      <h1>Connected Component</h1>
       <pre>{JSON.stringify(counter, null, 2)}</pre>
     </div>
   );

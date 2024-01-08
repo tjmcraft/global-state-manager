@@ -5,6 +5,7 @@ import { Provider } from 'global-state-manager';
 
 import { getDispatch, stateStore } from './store/Global';
 import App from './App';
+import './index.css';
 
 const root = createRoot(document.getElementById('app-root')!);
 
