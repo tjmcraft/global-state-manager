@@ -1,7 +1,7 @@
 import { createElement, useCallback, useEffect, useMemo, useRef } from "react";
-import useForceUpdate from "src/hooks/useForceUpdate";
-import useGsmContext from "src/hooks/useGsmContext";
-import { TypedConnector } from "src/types";
+import useForceUpdate from "../hooks/useForceUpdate";
+import useGsmContext from "../hooks/useGsmContext";
+import { TypedConnector } from "../types";
 
 const connect = <
   OwnProps extends AnyLiteral,

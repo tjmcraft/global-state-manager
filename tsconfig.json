@@ -14,7 +14,7 @@
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
-    "baseUrl": "./",
+    // "baseUrl": "./",
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
     "noImplicitUseStrict": false,

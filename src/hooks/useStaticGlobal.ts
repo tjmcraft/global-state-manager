@@ -1,4 +1,4 @@
-import type { TypedUseStaticHook } from "src/types";
+import type { TypedUseStaticHook } from "../types";
 
 import { useCallback, useMemo, useRef } from "react";
 import useGsmContext from "./useGsmContext";
