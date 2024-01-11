@@ -1,24 +1,22 @@
 import { throttle } from "./Util/Schedules";
-import { pick } from "./Util/Iterates";
 import { Store } from "./StateStore";
 
 import { Storage } from "./types";
 
 export const StoreCaching = <T, A>(
 	store: Store<T, A>,
-	initialState: T,
-	cachingKeys: Array<keyof T>,
 	storage: Storage,
-	cache_key: string = "tjmc.global.state"
+	cache_key: string = "tjmc.global.state",
+	reduceGlobal: (global: T) => Partial<T>,
+	shouldRunFirst: boolean = false,
 ) => {
 
 	if (typeof store != "object") throw new Error("Caching store in not instance of StateStore");
 
 	const STATE_CACHE_KEY = cache_key;
-	const INITIAL_STATE = initialState;
 	const UPDATE_THROTTLE = 500;
 
-	const updateCacheThrottled = throttle(() => updateCache(), UPDATE_THROTTLE, false);
+	const updateCacheThrottled = throttle(() => updateCache(), UPDATE_THROTTLE, shouldRunFirst);
 	let isCaching = true;
 
 	const setupCaching = () => {
@@ -58,16 +56,18 @@ export const StoreCaching = <T, A>(
 		if (!isCaching) {
 			return;
 		}
-		const global = store.getState(e => e);
-		const reducedGlobal = {
-			...INITIAL_STATE,
-			...pick(global, cachingKeys as never[])
-		};
+		let reducedGlobal = {};
+		try {
+			const global = store.getState(e => e);
+			reducedGlobal = reduceGlobal(global);
+		} catch (e) {
+			console.warn("[StoreCaching]", e, reducedGlobal);
+		}
 		try {
 			const json = JSON.stringify(reducedGlobal);
 			storage.setItem(STATE_CACHE_KEY, json);
 		} catch (e) {
-			console.warn(e, reducedGlobal);
+			console.warn("[StoreCaching]", e, reducedGlobal);
 		}
 	};
 
