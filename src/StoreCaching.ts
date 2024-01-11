@@ -7,7 +7,7 @@ export const StoreCaching = <T, A>(
 	store: Store<T, A>,
 	storage: Storage,
 	cache_key: string = "tjmc.global.state",
-	reduceGlobal: (global: T) => Partial<T>,
+	reduceGlobal: (global: T) => Partial<T> | AnyLiteral,
 	shouldRunFirst: boolean = false,
 ) => {
 
