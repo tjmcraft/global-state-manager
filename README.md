@@ -1,4 +1,4 @@
-# global-state-manager
+# @tjmc/global-state-manager
 
 Global State Manager for React
 
