@@ -5,7 +5,7 @@ Global State Manager for React
 ## Installation
 
 ```bash
-npm install --save-dev global-state-manager
+npm install @tjmc/global-state-manager
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ In `index.tsx`:
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { Provider } from 'global-state-manager';
+import { Provider } from '@tjmc/global-state-manager';
 
 import { getDispatch, stateStore } from './store/Global';
 import App from './App';
@@ -61,7 +61,7 @@ export default App;
 In `store/Global.ts`:
 
 ```typescript
-import { StateStore, TypedUseSelectorHook, useGlobal } from 'global-state-manager';
+import { StateStore, TypedUseSelectorHook, useGlobal } from '@tjmc/global-state-manager';
 
 export type GlobalState = {
  count: number
