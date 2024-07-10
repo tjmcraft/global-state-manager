@@ -17,7 +17,7 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 				return;
 			}
 
-			if (nextState != void 0) {
+			if (nextState != undefined) {
 
 				const isArray = Array.isArray(prevState) || Array.isArray(nextState);
 				const shouldUpdate = isArray ?
