@@ -97,7 +97,7 @@ const useGlobal = <TState = AnyLiteral, Selected = Partial<TState>>(
 			} catch (e) {
 				return undefined;
 			}
-			if (nextState != null && nextState != mappedProps.current) {
+			if (nextState != mappedProps.current) {
 				mappedProps.current = nextState;
 				void forceUpdate(bool => !bool);
 			}
