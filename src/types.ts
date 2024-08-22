@@ -42,10 +42,10 @@ export interface TypedUseSelectorHook<TState> {
 }
 
 export interface TypedUseStaticHook<TState> {
-  <Selected = AnyLiteral | undefined>(
+  <Selected>(
     selector: (state: TState) => Selected,
     inputs?: React.DependencyList
-  ): Selected | undefined;
+  ): Selected;
 }
 
 export type TypedConnector<EState extends AnyLiteral> = <

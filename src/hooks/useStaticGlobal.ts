@@ -12,9 +12,9 @@ import useGsmContext from "./useGsmContext";
  * @param inputs Peer dependency list
  * @returns Selected state
  */
-const useStaticGlobal: TypedUseStaticHook<AnyLiteral> = (
-  selector,
-  inputs = []
+const useStaticGlobal: TypedUseStaticHook<AnyLiteral> = <TState = AnyLiteral, Selected = Partial<TState>>(
+  selector: (state: TState) => Selected,
+  inputs: React.DependencyList = []
 ) => {
   const { store } = useGsmContext();
   const mappedProps = useRef<ReturnType<typeof selector>>();
@@ -30,7 +30,7 @@ const useStaticGlobal: TypedUseStaticHook<AnyLiteral> = (
     mappedProps.current = nextState;
   }, [picker]);
 
-  return mappedProps.current;
+  return mappedProps.current as Selected;
 };
 
 export default useStaticGlobal;

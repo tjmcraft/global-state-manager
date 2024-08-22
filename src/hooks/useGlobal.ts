@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { shallowEqual, stacksDiff, stacksEqual } from "../Util/Iterates";
 import { randomString } from "../Util/Random";
 
-import type { PickOptions } from "../types";
+import type { PickOptions, TypedUseSelectorHook } from "../types";
 import useForceUpdate from "./useForceUpdate";
 import useGsmContext from "./useGsmContext";
 
@@ -61,7 +61,7 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 		});
 };
 
-const useGlobal = <TState = AnyLiteral, Selected = Partial<TState>>(
+const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Selected = Partial<TState>>(
 	selector: (state: TState) => Selected,
 	inputs: React.DependencyList = [],
 	options: PickOptions = {}
