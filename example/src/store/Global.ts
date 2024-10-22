@@ -11,11 +11,15 @@ import {
 export type GlobalState = {
   count: number;
   static: Record<string, any>;
+  dataObject: {
+    value: number | undefined,
+  };
 };
 
 export interface ActionPayloads {
   init: undefined;
   setCount: number;
+  setValue: number | undefined;
 }
 
 const INITIAL_STATE: GlobalState = {
@@ -25,6 +29,9 @@ const INITIAL_STATE: GlobalState = {
     "1": { two: 2 },
     "2": { three: 3 },
   },
+  dataObject: {
+    value: 1,
+  }
 };
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>();
@@ -39,6 +46,18 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
     count: payload,
   };
 });
+
+stateStore.addReducer('setValue', (global, actions, payload) => {
+  return {
+    ...global,
+    dataObject: {
+      ...global.dataObject,
+      value: payload,
+    }
+  };
+});
+
+stateStore.addCallback(e => console.debug(">>", e));
 
 export const useAppGlobal = useGlobal as TypedUseSelectorHook<GlobalState>;
 export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;

@@ -19,6 +19,22 @@ const Counter = () => {
   );
 };
 
+const Resetter = () => {
+  const { setValue } = getDispatch();
+  const value = useAppGlobal((e) => e.dataObject.value);
+  useEffect(() => {
+    console.log(">>render Counter", value);
+  }, [value]);
+  return (
+    <div className="component resetter">
+      <h1>Resetter</h1>
+      <h3>value: {JSON.stringify(value)}</h3>
+      <button onClick={() => setValue(10)}>set</button>
+      <button onClick={() => setValue(undefined)}>unset</button>
+    </div>
+  );
+};
+
 const StaticDependency = ({ id = 1 }) => {
   const staticData = useStatic((e) => e.static[id], [id]);
   useEffect(() => {
@@ -32,16 +48,18 @@ const StaticDependency = ({ id = 1 }) => {
   );
 };
 
-const ConnectedComponent = connector<{id:number}>((global, props) => {
+const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>((global, props) => {
   return ({
     counter: global.count,
-    id: props.id,
+    value: global.dataObject.value,
   })
-})(({counter}) => {
+})(({ counter, id, value }) => {
   return (
     <div className="component connected-component">
       <h1>Connected Component</h1>
-      <pre>{JSON.stringify(counter, null, 2)}</pre>
+      <span>id (max. 5):<pre>{JSON.stringify(id, null, 2)}</pre></span>
+      <span>Counter:<pre>{JSON.stringify(counter, null, 2)}</pre></span>
+      <span>value:<pre>{JSON.stringify({ value }, null, 2)}</pre></span>
     </div>
   );
 });
@@ -55,7 +73,8 @@ const App = () => {
     <div className="app">
       <Counter />
       <StaticDependency id={Math.min(count, 2)} />
-      <ConnectedComponent id={2} />
+      <ConnectedComponent id={Math.min(count, 5)} />
+      <Resetter />
     </div>
   );
 };
