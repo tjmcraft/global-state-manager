@@ -50,8 +50,8 @@ export interface TypedUseStaticHook<TState> {
 
 export type TypedConnector<EState extends AnyLiteral> = <
   OwnProps = AnyLiteral,
+  Selected = AnyLiteral,
   FState = EState,
-  Selected = AnyLiteral & OwnProps
 >(
   mapStateToProps: (global: FState, ownProps: OwnProps) => Selected
-) => (Component: React.FC<Selected>) => React.FC<OwnProps>;
+) => (Component: React.FC<Selected & OwnProps>) => React.FC<OwnProps>;
