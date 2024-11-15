@@ -141,7 +141,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 				try {
 					container.mappedProps = selector(currentState as TState);
 				} catch (err) {
-					console.error(">> GSTATE", "CONTAINER\n", "INITIAL UPDATE",
+					debug && console.error(">> GSTATE", "CONTAINER\n", "INITIAL UPDATE",
 						"Чёт наебнулось в первый раз, но всем как-то похуй, да?\n",
 						"Может трейс глянешь хоть:\n", err);
 					return;
@@ -149,7 +149,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 			}
 			callback(container.mappedProps);
 			return () => {
-				console.debug("[withState]", "{GC}", "container", "->", id);
+				debug && console.debug("[withState]", "{GC}", "container", "->", id);
 				containers.delete(id);
 			};
 		};
