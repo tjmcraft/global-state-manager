@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { connector, getDispatch, useAppGlobal, useStatic } from "./store/Global";
+import { connector, getDispatch, getState, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
   const count = useAppGlobal((e) => e.count);
@@ -68,6 +68,7 @@ const App = () => {
   const count = useAppGlobal((e) => e.count);
   useEffect(() => {
     console.log(">>render App", count);
+    console.debug("State:", getState());
   }, [count]);
   return (
     <div className="app">

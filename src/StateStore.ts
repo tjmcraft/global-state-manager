@@ -34,20 +34,23 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		debug?: AnyLiteral | string;
 	}>;
 
-	let currentState: TState | undefined = initialState as TState | undefined;
+	let currentState: TState | undefined = initialState;
 	let reducers: ActionHandlers = {} as ActionHandlers;
 	let actions: Actions = {} as Actions;
 	let containers: Containers = new Map();
 
-	const setState: (state?: Partial<TState>, options?: ActionOptions) => void = (state = {}, options = {}) => {
+	const setState: (state: TState, options?: ActionOptions) => TState = (state, options) => {
 		if (typeof state === "object" && state !== currentState) {
-			currentState = state as TState;
-			if (options?.silent) return; // if silent -> no callbacks
-			runCallbacks();
+			currentState = state;
+			if (!options?.silent) { // if silent -> no callbacks
+				runCallbacks();
+			}
 		}
+		return currentState as TState;
 	}
 
-	const getState: <S = Partial<TState> | TState>(selector: (state: TState) => S) => S = (selector) => selector(currentState as TState);
+	const getState: <S = Partial<TState>>(selector?: (state: TState) => S) => S | TState =
+		(selector) => selector ? selector(currentState as TState) : currentState as TState;
 
 	const updateContainers = (currentState: TState) => {
 		for (const container of containers.values()) {
