@@ -1,5 +1,6 @@
 import { shallowEqual } from "./Util/Iterates";
 import { generateIdFor } from "./Util/Random";
+import { throttleWithTickEnd } from "./Util/Schedules";
 import { ActionOptions } from "./types";
 
 export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<string, any>>(
@@ -42,8 +43,9 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 	const setState: (state: TState, options?: ActionOptions) => TState = (state, options) => {
 		if (typeof state === "object" && state !== currentState) {
 			currentState = state;
+			debugMode && console.debug("setState:", state);
 			if (!options?.silent) { // if silent -> no callbacks
-				runCallbacks();
+				runCallbacksThrottled();
 			}
 		}
 		return currentState as TState;
@@ -74,6 +76,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		}
 	};
 
+
 	type StoreCallback = (global: TState) => void;
 
 	const callbacks: StoreCallback[] = [updateContainers];
@@ -89,8 +92,12 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		}
 	};
 	const runCallbacks = () => {
-		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState as TState) : null);
+		callbacks.forEach((cb) => cb(currentState as TState)); // skip check cause we already checked while adding it
 	};
+
+	const runCallbacksThrottled = throttleWithTickEnd(runCallbacks);
+
+
 
 	const onDispatch = <T extends ActionNames>(name: T, payload?: ActionPayload<T>, options?: ActionOptions) => {
 		if (Array.isArray(reducers[name])) { // if reducers for this name exists

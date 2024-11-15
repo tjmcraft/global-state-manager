@@ -34,7 +34,7 @@ const INITIAL_STATE: GlobalState = {
   }
 };
 
-export const stateStore = StateStore<GlobalState, ActionPayloads>();
+export const stateStore = StateStore<GlobalState, ActionPayloads>(undefined, true);
 
 stateStore.addReducer("init", () => {
   return Object.assign({}, INITIAL_STATE);

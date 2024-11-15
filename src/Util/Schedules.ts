@@ -1,3 +1,5 @@
+export type Scheduler = typeof requestAnimationFrame | typeof onTickEnd;
+
 export function debounce<F extends AnyToVoidFunction>(
 	fn: F,
 	ms: number,
@@ -58,4 +60,45 @@ export function throttle<F extends AnyToVoidFunction>(
 			}, ms);
 		}
 	};
+}
+
+
+
+export function throttleWithTickEnd<F extends AnyToVoidFunction>(fn: F) {
+  return throttleWith(onTickEnd, fn);
+}
+
+export function throttleWith<F extends AnyToVoidFunction>(schedulerFn: Scheduler, fn: F) {
+  let waiting = false;
+  let args: Parameters<F>;
+
+  return (..._args: Parameters<F>) => {
+    args = _args;
+
+    if (!waiting) {
+      waiting = true;
+
+      schedulerFn(() => {
+        waiting = false;
+        fn(...args);
+      });
+    }
+  };
+}
+
+
+let onTickEndCallbacks: NoneToVoidFunction[] | undefined;
+
+export function onTickEnd(callback: NoneToVoidFunction) {
+  if (!onTickEndCallbacks) {
+    onTickEndCallbacks = [callback];
+
+    Promise.resolve().then(() => {
+      const currentCallbacks = onTickEndCallbacks!;
+      onTickEndCallbacks = undefined;
+      currentCallbacks.forEach((cb) => cb());
+    });
+  } else {
+    onTickEndCallbacks.push(callback);
+  }
 }
