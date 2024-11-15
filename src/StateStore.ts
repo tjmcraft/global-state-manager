@@ -3,7 +3,8 @@ import { generateIdFor } from "./Util/Random";
 import { ActionOptions } from "./types";
 
 export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<string, any>>(
-	initialState?: TState | undefined
+	initialState?: TState | undefined,
+	debugMode?: boolean,
 ) {
 
 	type ActionNames = keyof ActionPayloads;
@@ -57,7 +58,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 			try {
 				newMappedProps = selector(currentState, ownProps);
 			} catch (err) {
-				console.error(">> GSTATE", "CONTAINER\n", "UPDATE",
+				debugMode && console.error(">> GSTATE", "CONTAINER\n", "UPDATE",
 					"Чёт наебнулось, но всем как-то похуй, да?\n",
 					"Может трейс глянешь хоть:\n", err);
 				return;
@@ -85,7 +86,6 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		}
 	};
 	const runCallbacks = () => {
-		//console.debug("run callbacks", callbacks)
 		callbacks.forEach((cb) => typeof cb === "function" ? cb(currentState as TState) : null);
 	};
 
