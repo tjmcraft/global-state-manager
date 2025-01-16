@@ -51,8 +51,11 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		return currentState as TState;
 	}
 
-	const getState: <S = Partial<TState>>(selector?: (state: TState) => S) => S | TState =
-		(selector) => selector ? selector(currentState as TState) : currentState as TState;
+	function getState<S = Partial<TState>>(selector: (state: TState) => S): S;
+	function getState(selector?: undefined): TState;
+	function getState<S = Partial<TState>>(selector?: (state: TState) => S): S | TState {
+		return selector ? selector(currentState as TState) : currentState as TState;
+	}
 
 	const updateContainers = (currentState: TState) => {
 		for (const container of containers.values()) {

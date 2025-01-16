@@ -47,6 +47,18 @@ const StaticDependency = ({ id = 1 }) => {
     </div>
   );
 };
+const StaticDependencyGlobal = ({ id = 1 }) => {
+  const staticData = getState((e) => e.static[id]);
+  useEffect(() => {
+    console.log(">>render Static global", staticData);
+  }, [staticData]);
+  return (
+    <div className="component static-dependency-global">
+      <h1>Static Dependency Global</h1>
+      <pre>{JSON.stringify(staticData, null, 2)}</pre>
+    </div>
+  );
+};
 
 const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>((global, props) => {
   return ({
@@ -74,6 +86,7 @@ const App = () => {
     <div className="app">
       <Counter />
       <StaticDependency id={Math.min(count, 2)} />
+      <StaticDependencyGlobal id={Math.min(count, 2)} />
       <ConnectedComponent id={Math.min(count, 5)} />
       <Resetter />
     </div>
