@@ -12,56 +12,16 @@ npm install @tjmc/global-state-manager
 
 ### In React Project
 
-In `index.tsx`:
-
-```typescript
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-
-import { Provider } from '@tjmc/global-state-manager';
-
-import { getDispatch, stateStore } from './store/Global';
-import App from './App';
-
-const root = createRoot(document.getElementById('app-root')!);
-
-getDispatch().init();
-
-root.render(
- <Provider store={stateStore}>
-  <App />
- </Provider>
-);
-```
-
-In `App.tsx`:
-
-```typescript
-import React from "react";
-import { getDispatch, useAppGlobal } from "./store/Global";
-
-const App = () => {
- const count = useAppGlobal(e => e.count);
-  const { setCount } = getDispatch();
-  const handleIncrement = () => setCount(count + 1);
-  const handleDecrement = () => setCount(count - 1);
-  console.log('>>render main')
-  return (
-    <div className="app">
-      <h1>state: {count}</h1>
-      <button onClick={handleIncrement}>+</button>
-      <button onClick={handleDecrement}>-</button>
-    </div>
-  );
-};
-
-export default App;
-```
-
 In `store/Global.ts`:
 
 ```typescript
-import { StateStore, TypedUseSelectorHook, useGlobal } from '@tjmc/global-state-manager';
+import {
+ StateStore,
+ TypedUseSelectorHook,
+ useGlobal,
+ useStaticGlobal,
+ connect,
+} from '@tjmc/global-state-manager';
 
 export type GlobalState = {
  count: number
@@ -88,7 +48,7 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
 });
 
 // hooks
-export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
+export const useAppGlobal = useGlobal as TypedUseSelectorHook<GlobalState>;
 export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;
 // hoc
 export const withConnect = connect as TypedConnector<GlobalState>;
@@ -104,4 +64,52 @@ export const setState = stateStore.setState;
 export const withState = stateStore.withState; // callback with picker
 export const addCallback = stateStore.addCallback;
 export const removeCallback = stateStore.removeCallback;
+```
+
+
+In `App.tsx`:
+
+```typescript
+import React from "react";
+import { getDispatch, useAppGlobal } from "./store/Global";
+
+const App = () => {
+ const count = useAppGlobal(e => e.count);
+  const { setCount } = getDispatch();
+  const handleIncrement = () => setCount(count + 1);
+  const handleDecrement = () => setCount(count - 1);
+  console.log('>>render main')
+  return (
+    <div className="app">
+      <h1>state: {count}</h1>
+      <button onClick={handleIncrement}>+</button>
+      <button onClick={handleDecrement}>-</button>
+    </div>
+  );
+};
+
+export default App;
+```
+
+
+In `index.tsx`:
+
+```typescript
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+
+import { Provider } from '@tjmc/global-state-manager';
+
+import { getDispatch, stateStore } from './store/Global';
+import App from './App';
+
+const root = createRoot(document.getElementById('app-root')!);
+
+getDispatch().init();
+
+root.render(
+ <Provider store={stateStore}>
+  <App />
+ </Provider>
+);
 ```
