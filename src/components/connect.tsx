@@ -44,7 +44,7 @@ const connect = <
         };
         store.addCallback(callback);
         return () => store.removeCallback(callback);
-      }, [forceUpdate]);
+      }, [forceUpdate, props]);
 
       return createElement(Component, {
         ...mappedProps.current,
