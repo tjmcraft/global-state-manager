@@ -87,14 +87,21 @@ stateStore.addReducer("setCount", (global, _actions, payload) => {
  };
 });
 
+// hooks
 export const useAppGlobal: TypedUseSelectorHook<GlobalState> = useGlobal;
-
+export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;
+// hoc
+export const withConnect = connect as TypedConnector<GlobalState>;
+// dispatch events triggers
 export const getDispatch = stateStore.getDispatch;
-export const getState = stateStore.getState;
-export const setState = stateStore.setState;
-export const withState = stateStore.withState;
+// reducers on dispatch events
 export const addReducer = stateStore.addReducer;
 export const removeReducer = stateStore.removeReducer;
+// global state getter/setter's
+export const getState = stateStore.getState;
+export const setState = stateStore.setState;
+// callbacks
+export const withState = stateStore.withState; // callback with picker
 export const addCallback = stateStore.addCallback;
 export const removeCallback = stateStore.removeCallback;
 ```
