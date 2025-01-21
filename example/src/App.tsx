@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { connector, getDispatch, getState, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
@@ -64,8 +64,10 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
   return ({
     counter: global.count,
     value: global.dataObject.value,
+    id: props.id,
   })
 })(({ counter, id, value }) => {
+  console.debug('[ConnectedComponent]', 'render', { counter, id, value });
   return (
     <div className="component connected-component">
       <h1>Connected Component</h1>
@@ -78,12 +80,14 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
 
 const App = () => {
   const count = useAppGlobal((e) => e.count);
+  const forceUpdate = useState(false)[1];
   useEffect(() => {
     console.log(">>render App", count);
     console.debug("State:", getState());
   }, [count]);
   return (
     <div className="app">
+      <button onClick={() => forceUpdate(bool => !bool)}>Force Render Root</button>
       <Counter />
       <StaticDependency id={Math.min(count, 2)} />
       <StaticDependencyGlobal id={Math.min(count, 2)} />
