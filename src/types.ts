@@ -48,10 +48,18 @@ export interface TypedUseStaticHook<TState> {
   ): Selected;
 }
 
+export type ConnectOptions = {
+  nonMemoizedContainer?: boolean;
+  label?: string;
+  debugCallbackPicker?: boolean;
+  debugInitialPicker?: boolean;
+};
+
 export type TypedConnector<EState extends AnyLiteral> = <
   OwnProps = AnyLiteral,
   Selected = AnyLiteral,
   FState = EState,
 >(
-  mapStateToProps: (global: FState, ownProps: OwnProps) => Selected
+  mapStateToProps: (global: FState, ownProps: OwnProps) => Selected,
+  options?: ConnectOptions,
 ) => (Component: React.FC<Selected & OwnProps>) => React.FC<OwnProps>;

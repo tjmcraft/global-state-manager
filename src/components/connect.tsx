@@ -1,14 +1,59 @@
 import { createElement, memo, useCallback, useEffect, useMemo, useRef } from "react";
 import useForceUpdate from "../hooks/useForceUpdate";
 import useGsmContext from "../hooks/useGsmContext";
-import { TypedConnector } from "../types";
+import { ConnectOptions, TypedConnector } from "../types";
 import { randomString } from "../Util/Random";
+import { shallowEqual, stacksDiff, stacksEqual } from "../Util/Iterates";
 
-type PickOptions = {
-  nonMemoizedContainer?: boolean;
-  label?: string;
-  debugCallbackPicker?: boolean;
-  debugInitialPicker?: boolean;
+
+const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, callback: Function, options: ConnectOptions) => {
+  return (global: T): S =>
+    callback((prevState: T, ownProps: O) => {
+
+      let nextState;
+      try {
+        nextState = selector(global, ownProps);
+      } catch (err) {
+        return;
+      }
+
+      if (global !== undefined) {
+
+        const isArray = Array.isArray(prevState) || Array.isArray(nextState);
+        const shouldUpdate = isArray ?
+          !stacksEqual(prevState as Array<any>, nextState as Array<any>) :
+          !shallowEqual(prevState, nextState);
+
+        if (options.debugCallbackPicker) {
+          console.debug(
+            "[gsm:connect:picker]", "->", options.label,
+            "\n", "state", "=>", "picking",
+            "\n", "next", "=>", nextState,
+            ...(isArray ? (
+              [
+                "\n", "stacksEqual", "=>", stacksEqual(prevState as Array<any>, nextState as Array<any>),
+                "\n", "stacksDiff", "=>", stacksDiff(prevState as Array<any>, nextState as Array<any>),
+                "\n", "current", "=>", prevState,
+                "\n", "next", "=>", nextState,
+                "\n", "result", "=>", shouldUpdate,
+              ]
+            ) : [])
+          );
+        }
+
+        if (shouldUpdate) {
+          if (options.debugCallbackPicker) {
+            console.debug(
+              "[gsm:connect:picker]", "->", options.label,
+              "\n", "state", "=>", "picked!",
+              "\n", "next", "=>", nextState,
+            );
+          }
+          return nextState;
+        }
+      }
+      return prevState;
+    });
 };
 
 const connect = <
@@ -17,7 +62,7 @@ const connect = <
   Selected extends AnyLiteral & OwnProps
 >(
   selector: (global: TState, props: OwnProps) => Selected,
-  options: PickOptions = {}
+  options: ConnectOptions = {}
 ) => {
 
   options = Object.assign({
@@ -25,7 +70,7 @@ const connect = <
     label: randomString(5),
     debugCallbackPicker: false,
     debugInitialPicker: false,
-  } satisfies PickOptions, options);
+  } satisfies ConnectOptions, options);
 
   return (Component: React.FC<Selected>) => {
 
@@ -42,7 +87,7 @@ const connect = <
           const global = store.getState((e) => e);
           nextState = picker(global, props);
           options.debugInitialPicker &&
-            console.debug('[gsm:connect]', `{${options.label}}`, { global, props, nextState });
+            console.debug('[gsm:connect:initial_picker]', '->', `${options.label}\n`, { mappedProps, global, props, nextState });
         } catch (e) {
           return undefined;
         }
@@ -50,25 +95,22 @@ const connect = <
       }, [picker]);
 
       useEffect(() => {
-        const callback = (global: TState) => {
+        const updateCallback = (next: AnyFunction) => {
           let nextState;
           try {
-            nextState = picker(global, props);
-            options.debugCallbackPicker &&
-              console.debug('[gsm:connect]', `{${options.label}}`, { global, props, nextState });
+            nextState = next(mappedProps.current, props);
           } catch (e) {
             return undefined;
           }
           if (nextState != mappedProps.current) {
             mappedProps.current = nextState;
-            void forceUpdate((bool) => !bool);
-            options.debugCallbackPicker &&
-              console.debug('[gsm:connect]', `{${options.label}}`, 'forcing update', { mappedProps, global, props, nextState });
+            void forceUpdate(bool => !bool);
           }
         };
+        const callback = updateContainer<TState, Selected, OwnProps>(picker, updateCallback, options);
         store.addCallback(callback);
         return () => store.removeCallback(callback);
-      }, [forceUpdate, picker]);
+      }, [forceUpdate, picker, props]);
 
       return createElement(Component, {
         ...mappedProps.current,

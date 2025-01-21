@@ -66,7 +66,7 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
     value: global.dataObject.value,
     id: props.id,
   })
-})(({ counter, id, value }) => {
+}, {debugCallbackPicker: true, debugInitialPicker: true})(({ counter, id, value }) => {
   console.debug('[ConnectedComponent]', 'render', { counter, id, value });
   return (
     <div className="component connected-component">
