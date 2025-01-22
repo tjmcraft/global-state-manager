@@ -109,7 +109,7 @@ const connect = <
           try {
             nextState = next(mappedProps.current, props);
             options.debugCallbackPicker &&
-              console.debug('[gsm:connect:next_picker]', '->', `${options.label}\n`, { mappedProps, global, props, nextState });
+              console.debug('[gsm:connect:next_picker]', '->', `${options.label}\n`, { mappedProps, props, nextState });
           } catch (e) {
             // options.debugCallbackPicker &&
               console.error('[gsm:connect:next_picker]', '->', `${options.label}\n`, 'thrown an error\n', e);
