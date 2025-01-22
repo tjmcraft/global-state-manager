@@ -77,29 +77,42 @@ const connect = <
     function TCContainer(props: OwnProps) {
       const { store } = useGsmContext();
 
+      (options.debugInitialPicker || options.debugCallbackPicker) &&
+        console.debug('[gsm:connect]', 'rendering', 'TCContainer', { props });
+
       const forceUpdate = useForceUpdate();
       const mappedProps = useRef<ReturnType<typeof selector>>();
       const picker = useCallback(selector, [selector, props]);
 
       useMemo(() => {
         let nextState;
+        options.debugInitialPicker &&
+          console.debug('[gsm:connect:initial_picker]', '->', `${options.label}\n`, 'start picking')
         try {
           const global = store.getState((e) => e);
           nextState = picker(global, props);
           options.debugInitialPicker &&
             console.debug('[gsm:connect:initial_picker]', '->', `${options.label}\n`, { mappedProps, global, props, nextState });
         } catch (e) {
+          // options.debugInitialPicker &&
+            console.error('[gsm:connect:initial_picker]', '->', `${options.label}\n`, 'thrown an error\n', e)
           return undefined;
         }
         mappedProps.current = nextState;
-      }, [picker]);
+      }, [picker, props]);
 
       useEffect(() => {
         const updateCallback = (next: AnyFunction) => {
           let nextState;
+          options.debugCallbackPicker &&
+            console.debug('[gsm:connect:next_picker]', '->', `${options.label}\n`, 'start picking');
           try {
             nextState = next(mappedProps.current, props);
+            options.debugCallbackPicker &&
+              console.debug('[gsm:connect:next_picker]', '->', `${options.label}\n`, { mappedProps, global, props, nextState });
           } catch (e) {
+            // options.debugCallbackPicker &&
+              console.error('[gsm:connect:next_picker]', '->', `${options.label}\n`, 'thrown an error\n', e);
             return undefined;
           }
           if (nextState != mappedProps.current) {
