@@ -27,6 +27,12 @@ export interface WebStorage extends Storage {
   removeItem(key: string): Promise<void>;
 }
 
+export type CachingOptions = {
+  shouldRunFirstUpdateCacheThrottle: boolean;
+  updateCacheThrottle: number;
+  skipValidateKeySetOnReadCache: boolean;
+};
+
 export type PickOptions = {
   debugPicker?: boolean;
   debugPicked?: boolean;

@@ -1,23 +1,29 @@
 import { throttle } from "./Util/Schedules";
 import { Store } from "./StateStore";
 
-import { Storage } from "./types";
+import { CachingOptions, Storage } from "./types";
+import { validateKeySet } from "./Util/Iterates";
 
-export const StoreCaching = <T, A>(
+export const StoreCaching = <T extends AnyLiteral, A extends AnyLiteral>(
 	store: Store<T, A>,
 	storage: Storage,
 	cache_key: string = "tjmc.global.state",
 	reduceGlobal: (global: T) => Partial<T> | AnyLiteral,
-	shouldRunFirst: boolean = false,
+	options?: Partial<CachingOptions>
 ) => {
 
 	if (typeof store != "object") throw new Error("Caching store in not instance of StateStore");
 
-	const STATE_CACHE_KEY = cache_key;
-	const UPDATE_THROTTLE = 500;
+	const opts: CachingOptions = Object.assign<CachingOptions, Partial<CachingOptions>>({
+		shouldRunFirstUpdateCacheThrottle: false,
+		updateCacheThrottle: 500,
+		skipValidateKeySetOnReadCache: false,
+	}, options || {});
 
-	const updateCacheThrottled = throttle(() => updateCache(), UPDATE_THROTTLE, shouldRunFirst);
-	let isCaching = true;
+	const STATE_CACHE_KEY = cache_key;
+
+	const updateCacheThrottled = throttle(() => updateCache(), opts.updateCacheThrottle, opts.shouldRunFirstUpdateCacheThrottle);
+	let isCaching = false;
 
 	const setupCaching = () => {
 		isCaching = true;
@@ -43,13 +49,10 @@ export const StoreCaching = <T, A>(
 	const readCache = async (initialState: T) => {
 		const json = await storage.getItem(STATE_CACHE_KEY);
 		const cached = json ? JSON.parse(json) : undefined;
-		const newState = {
-			...initialState,
-			...cached,
-		};
-		return {
-			...newState
-		};
+		const newState = opts.skipValidateKeySetOnReadCache ?
+			Object.assign(initialState, cached) :
+			validateKeySet<T, Partial<T>>(initialState, cached);
+		return { ...newState };
 	};
 
 	const updateCache = () => {

@@ -146,3 +146,23 @@ export const stacksDiff = <T>(arr1: Array<T>, arr2: Array<T>) =>
 	arr1
 		.filter(x => !arr2.includes(x))
 		.concat(arr2.filter(x => !arr1.includes(x)));
+
+export const validateKeySet = <T extends AnyLiteral, E extends Partial<T>>(srcObj: T, destObj: E): T => {
+	if (srcObj == null) srcObj = {} as T;
+	const destCopy = Object.assign(destObj);
+	const keys = Object.keys(srcObj) as (keyof T)[];
+	for (let i = 0; i < keys.length; i++) {
+		const key = keys[i];
+		if (typeof destCopy[key] === 'undefined') {
+			destCopy[key] = srcObj[key];
+		} else if (
+			typeof srcObj[key] === 'object' &&
+			srcObj[key] != null &&
+			// @ts-ignore
+			!(srcObj[key] instanceof Array)
+		) {
+			destCopy[key] = validateKeySet(srcObj[key], destCopy[key]);
+		}
+	}
+	return destCopy as T;
+}
