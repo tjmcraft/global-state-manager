@@ -97,4 +97,9 @@ const App = () => {
   );
 };
 
-export default App;
+const AppWrapper = () => {
+  const initialized = useAppGlobal(e => e.__initialized);
+  return initialized ? <App /> : <span>loading...</span>;
+}
+
+export default AppWrapper;

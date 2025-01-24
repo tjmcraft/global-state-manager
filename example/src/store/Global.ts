@@ -1,14 +1,17 @@
 import {
   StateStore,
+  StoreCaching,
   TypedConnector,
   TypedUseSelectorHook,
   TypedUseStaticHook,
   connect,
   useGlobal,
   useStaticGlobal,
+  WebStorage,
 } from "global-state-manager";
 
 export type GlobalState = {
+  __initialized: boolean; // add flag for waiting init
   count: number;
   static: Record<string, any>;
   dataObject: {
@@ -23,6 +26,7 @@ export interface ActionPayloads {
 }
 
 const INITIAL_STATE: GlobalState = {
+  __initialized: false,
   count: 0,
   static: {
     "0": "first",
@@ -36,8 +40,30 @@ const INITIAL_STATE: GlobalState = {
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>(undefined, true);
 
-stateStore.addReducer("init", () => {
-  return Object.assign({}, INITIAL_STATE);
+const cachingReducer = (global: GlobalState): Partial<GlobalState> => {
+  return {
+    count: global.count,
+  };
+};
+
+const storage = WebStorage();
+
+const { loadCache, resetCache } = StoreCaching<GlobalState, ActionPayloads>(
+  stateStore,
+  storage,
+  "ru.tjmc.gsm.demo.cacheKey",
+  cachingReducer,
+);
+
+stateStore.addReducer("init", async (_global, actions) => {
+  const initial = Object.assign({}, INITIAL_STATE);
+  const state = (await loadCache(initial)) || initial; // manually load state from storage
+  setTimeout(() => {
+    setState({
+      ...state,
+      __initialized: true,
+    }, { silent: false }); // manually set loaded state
+  }, 1e2); // 100ms before rehydrating
 });
 
 stateStore.addReducer("setCount", (global, _actions, payload) => {
