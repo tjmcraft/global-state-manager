@@ -48,7 +48,7 @@ export const StoreCaching = <T extends AnyLiteral, A extends AnyLiteral>(
 
 	const readCache = async (initialState: T) => {
 		const json = await storage.getItem(STATE_CACHE_KEY);
-		const cached = json ? JSON.parse(json) : undefined;
+		const cached = json ? JSON.parse(json) : {};
 		const newState = opts.skipValidateKeySetOnReadCache ?
 			Object.assign(initialState, cached) :
 			validateKeySet<T, Partial<T>>(initialState, cached);
