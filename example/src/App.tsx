@@ -4,8 +4,8 @@ import { connector, getDispatch, getState, useAppGlobal, useStatic } from "./sto
 const Counter = () => {
   const count = useAppGlobal((e) => e.count);
   const { setCount } = getDispatch();
-  const handleIncrement = () => setCount(count + 1);
-  const handleDecrement = () => setCount(count - 1);
+  const handleIncrement = () => setCount(count + 1, {reason: 'set_count_inc'});
+  const handleDecrement = () => setCount(count - 1, {reason: 'set_count_dec'});
   useEffect(() => {
     console.log(">>render Counter", count);
   }, [count]);
@@ -66,7 +66,12 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
     value: global.dataObject.value,
     id: props.id,
   })
-}, {debugCallbackPicker: true, debugInitialPicker: true})(({ counter, id, value }) => {
+}, {
+  label: 'ConnectedComponent',
+  debugInitialPicker: false,
+  debugCallbackPicker: false,
+  debugCallbackPicked: true,
+})(({ counter, id, value }) => {
   console.debug('[ConnectedComponent]', 'render', { counter, id, value });
   return (
     <div className="component connected-component">

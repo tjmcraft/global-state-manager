@@ -83,7 +83,7 @@ stateStore.addReducer('setValue', (global, actions, payload) => {
   };
 });
 
-stateStore.addCallback(e => console.debug(">>", e));
+stateStore.addCallback((global, reason) => console.debug("stateStore", "update", "\nreason:", reason, "\nglobal:", global));
 
 export const useAppGlobal = useGlobal as TypedUseSelectorHook<GlobalState>;
 export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;

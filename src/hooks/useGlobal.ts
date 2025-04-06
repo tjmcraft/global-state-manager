@@ -6,9 +6,9 @@ import type { PickOptions, TypedUseSelectorHook } from "../types";
 import useForceUpdate from "./useForceUpdate";
 import useGsmContext from "./useGsmContext";
 
-const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, options: PickOptions) => {
-	return (global: T): S =>
-		callback((prevState: T) => {
+const updateContainer = <T, S>(selector: (state: T) => S, updateCallback: Function, options: PickOptions) => {
+	return (global: T, reason?: string): S =>
+		updateCallback((prevState: T) => {
 
 			let nextState;
 			try {
@@ -27,9 +27,8 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 				if (options.debugPicker) {
 					// prettier-ignore
 					console.debug(
-						"[picker]", "->", options.label,
-						"\n", "state", "=>", "picking",
-						"\n", "next", "=>", nextState,
+						"[gsm:useGlobal]", "[picking]", "->", options.label,
+						"\n", "reason", "=>", reason,
 						...(isArray ? (
 							[
 								"\n", "stacksEqual", "=>", stacksEqual(prevState as Array<any>, nextState as Array<any>),
@@ -38,7 +37,9 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 								"\n", "next", "=>", nextState,
 								"\n", "result", "=>", shouldUpdate,
 							]
-						) : [])
+						) : [
+							"\n", "next", "=>", nextState,
+						])
 					);
 				}
 
@@ -49,8 +50,8 @@ const updateContainer = <T, S>(selector: (state: T) => S, callback: Function, op
 					if (options.debugPicked) {
 						// prettier-ignore
 						console.debug(
-							"[picker]", "->", options.label,
-							"\n", "state", "=>", "picked!",
+							"[gsm:useGlobal]", "[picked]", "->", options.label,
+							"\n", "reason", "=>", reason,
 							"\n", "next", "=>", nextState,
 						);
 					}

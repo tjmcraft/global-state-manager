@@ -27,13 +27,14 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		[ActionName in ActionNames]: ActionHandler<ActionName>[];
 	};
 
-	type Containers = Map<string, {
+	type Container = {
 		selector: (state: TState, ownProps?: AnyLiteral) => Partial<TState>;
 		ownProps?: AnyLiteral | undefined;
 		mappedProps?: AnyLiteral | undefined;
-		callback: Function;
+		callback: (mappedProps: AnyLiteral, reason?: string) => void;
 		debug?: AnyLiteral | string;
-	}>;
+	};
+	type Containers = Map<string, Container>;
 
 	let currentState: TState | undefined = initialState;
 	let reducers: ActionHandlers = {} as ActionHandlers;
@@ -43,9 +44,13 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 	const setState: (state: TState, options?: ActionOptions) => TState = (state, options) => {
 		if (typeof state === "object" && state !== currentState) {
 			currentState = state;
-			debugMode && console.debug("setState:", state);
+			debugMode && console.debug("[StateStore]", "setState:", state);
 			if (!options?.silent) { // if silent -> no callbacks
-				runCallbacksThrottled();
+				if (options?.forceSync) {
+					runCallbacks(options?.reason);
+				} else {
+					runCallbacksThrottled(options?.reason);
+				}
 			}
 		}
 		return currentState as TState;
@@ -57,7 +62,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		return selector ? selector(currentState as TState) : currentState as TState;
 	}
 
-	const updateContainers = (currentState: TState) => {
+	const updateContainers = (currentState: TState, reason?: string) => {
 		for (const container of containers.values()) {
 			const { selector, ownProps, mappedProps, callback } = container;
 
@@ -74,13 +79,13 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 
 			if (Object.keys(newMappedProps).length && !shallowEqual(mappedProps, newMappedProps)) {
 				container.mappedProps = newMappedProps;
-				callback(container.mappedProps);
+				callback(container.mappedProps, reason); // pass reason of update
 			}
 		}
 	};
 
 
-	type StoreCallback = (global: TState) => void;
+	type StoreCallback = (global: TState, reason?: string) => void;
 
 	const callbacks: StoreCallback[] = [updateContainers];
 	const addCallback = (cb: StoreCallback) => {
@@ -94,8 +99,9 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 			callbacks.splice(index, 1);
 		}
 	};
-	const runCallbacks = () => {
-		callbacks.forEach((cb) => cb(currentState as TState)); // skip check cause we already checked while adding it
+	const runCallbacks = (reason?: string) => {
+		reason = reason || '@ss_no_reason';
+		callbacks.forEach((cb) => cb(currentState as TState, reason)); // skip check cause we already checked while adding it
 	};
 
 	const runCallbacksThrottled = throttleWithTickEnd(runCallbacks);
@@ -109,6 +115,10 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 				if (!response || typeof (response as Promise<void>).then === "function") {
 					return response;
 				}
+				options = {
+					...options,
+					reason: '@dispatch:' + name.toString() + (options?.reason ? ('->' + options?.reason) : ''),
+				};
 				setState(response as TState, options);
 			});
 		}
@@ -138,7 +148,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		selector: (state: TState, ownProps?: AnyLiteral) => Partial<TState>,
 		debug?: AnyLiteral | undefined
 	) => {
-		return (callback: Function) => {
+		return (callback: Container['callback']) => {
 			const id = generateIdFor(containers);
 			let container = containers.get(id);
 			if (!container) {
@@ -160,7 +170,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 					return;
 				}
 			}
-			callback(container.mappedProps);
+			callback(container.mappedProps, '@initial_update');
 			return () => {
 				debug && console.debug("[withState]", "{GC}", "container", "->", id);
 				containers.delete(id);

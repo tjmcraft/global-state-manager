@@ -6,9 +6,9 @@ import { randomString } from "../Util/Random";
 import { shallowEqual, stacksDiff, stacksEqual } from "../Util/Iterates";
 
 
-const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, callback: Function, options: ConnectOptions) => {
-  return (global: T): S =>
-    callback((prevState: T, ownProps: O) => {
+const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, updateCallback: Function, options: ConnectOptions) => {
+  return (global: T, reason?: string): S =>
+    updateCallback((prevState: T, ownProps: O) => {
 
       let nextState;
       try {
@@ -26,9 +26,8 @@ const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, callba
 
         if (options.debugCallbackPicker) {
           console.debug(
-            "[gsm:connect:picker]", "->", options.label,
-            "\n", "state", "=>", "picking",
-            "\n", "next", "=>", nextState,
+            "[gsm:connect]", "[picking]", "->", options.label,
+            "\n", "reason", "=>", reason,
             ...(isArray ? (
               [
                 "\n", "stacksEqual", "=>", stacksEqual(prevState as Array<any>, nextState as Array<any>),
@@ -37,15 +36,17 @@ const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, callba
                 "\n", "next", "=>", nextState,
                 "\n", "result", "=>", shouldUpdate,
               ]
-            ) : [])
+            ) : [
+              "\n", "next", "=>", nextState,
+            ])
           );
         }
 
         if (shouldUpdate) {
-          if (options.debugCallbackPicker) {
+          if (options.debugCallbackPicked) {
             console.debug(
-              "[gsm:connect:picker]", "->", options.label,
-              "\n", "state", "=>", "picked!",
+              "[gsm:connect]", "[picked]", "->", options.label,
+              "\n", "reason", "=>", reason,
               "\n", "next", "=>", nextState,
             );
           }
@@ -69,6 +70,7 @@ const connect = <
     nonMemoizedContainer: false,
     label: randomString(5),
     debugCallbackPicker: false,
+    debugCallbackPicked: false,
     debugInitialPicker: false,
   } satisfies ConnectOptions, options);
 

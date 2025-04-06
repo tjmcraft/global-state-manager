@@ -2,6 +2,8 @@ import React from "react";
 
 export interface ActionOptions {
   silent?: boolean;
+  forceSync?: boolean;
+  reason?: string;
 }
 
 export interface Storage {
@@ -58,6 +60,7 @@ export type ConnectOptions = {
   nonMemoizedContainer?: boolean;
   label?: string;
   debugCallbackPicker?: boolean;
+  debugCallbackPicked?: boolean;
   debugInitialPicker?: boolean;
 };
 
