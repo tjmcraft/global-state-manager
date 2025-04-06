@@ -44,7 +44,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 	const setState: (state: TState, options?: ActionOptions) => TState = (state, options) => {
 		if (typeof state === "object" && state !== currentState) {
 			currentState = state;
-			debugMode && console.debug("[StateStore]", "setState:", state);
+			debugMode && console.debug("[StateStore]", "[setState]", "\noptions:", options, "\nstate:", state);
 			if (!options?.silent) { // if silent -> no callbacks
 				if (options?.forceSync) {
 					runCallbacks(options?.reason);
