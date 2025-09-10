@@ -1,6 +1,6 @@
 {
   "name": "@tjmc/global-state-manager",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "Global State Manager for React",
   "scripts": {
     "build": "rimraf dist && tsup",
