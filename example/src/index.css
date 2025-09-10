@@ -5,4 +5,10 @@
 }
 .component > h1 {
 	margin: 0;
+	margin-bottom: 8px;
+}
+.component > p {
+	margin: 0;
+	margin-bottom: 4px;
+	white-space: pre;
 }

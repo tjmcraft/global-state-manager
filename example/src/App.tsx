@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { connector, getDispatch, getState, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
@@ -15,22 +15,6 @@ const Counter = () => {
       <h3>state: {count}</h3>
       <button onClick={handleIncrement}>+</button>
       <button onClick={handleDecrement}>-</button>
-    </div>
-  );
-};
-
-const Resetter = () => {
-  const { setValue } = getDispatch();
-  const value = useAppGlobal((e) => e.dataObject.value);
-  useEffect(() => {
-    console.log(">>render Counter", value);
-  }, [value]);
-  return (
-    <div className="component resetter">
-      <h1>Resetter</h1>
-      <h3>value: {JSON.stringify(value)}</h3>
-      <button onClick={() => setValue(10)}>set</button>
-      <button onClick={() => setValue(undefined)}>unset</button>
     </div>
   );
 };
@@ -83,6 +67,89 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
   );
 });
 
+const Resetter = () => {
+  const { setValue } = getDispatch();
+  const value = useAppGlobal((e) => e.dataObject.value);
+  useEffect(() => {
+    console.log(">>render Counter", value);
+  }, [value]);
+  return (
+    <div className="component resetter">
+      <h1>Resetter</h1>
+      <h3>value: {JSON.stringify(value)}</h3>
+      <button onClick={() => setValue(10)}>set</button>
+      <button onClick={() => setValue(undefined)}>unset</button>
+    </div>
+  );
+};
+
+const SyncChain = () => {
+  const { syncChain } = getDispatch();
+  const value = useAppGlobal((e) => e.syncChainValue);
+  useEffect(() => {
+    console.log(">>render SyncChain", value);
+  }, [value]);
+  const [chainState, setChainState] = useState('none');
+  const startSync = useCallback(() => {
+    setChainState('pending');
+    setTimeout(() => {
+      syncChain();
+      setChainState('batchDone');
+    }, 100);
+  }, [syncChain]);
+  return (
+    <div className="component sync-chain">
+      <h1>Sync Chain</h1>
+      <p>Represents synchronous chain support</p>
+      <p>{`Chain should be:
+      (none, 0)
+      after 100ms delay start sync with (pending, 0)
+      after first reducer 1000ms timeout (pending, 1)
+      after second reducer 500ms timeout (pending, 1+2)
+      end (batchDone, 3)
+      WARNING: during optimization you only see one render after all reducers execution
+      `}</p>
+      <h3>chainState: {JSON.stringify(chainState)}</h3>
+      <h3>value: {JSON.stringify(value)}</h3>
+      <button onClick={startSync}>startSync</button>
+    </div>
+  );
+};
+
+const AsyncChain = () => {
+  const { asyncChain } = getDispatch();
+  const value = useAppGlobal((e) => e.asyncChainValue);
+  useEffect(() => {
+    console.log(">>render AsyncChain", value);
+  }, [value]);
+  const [promiseState, setPromiseState] = useState('none');
+  const startSync = useCallback(() => {
+    const promise = asyncChain();
+    setPromiseState('pending');
+    promise.then(() => setPromiseState('fulfilled'));
+    promise.catch(() => setPromiseState('rejected'));
+  }, [asyncChain]);
+  return (
+    <div className="component async-chain">
+      <h1>Async Chain</h1>
+      <p>Represents asynchronous chain support</p>
+      <p>{`Chain should be:
+      (none, 0)
+      after start (pending, 0)
+      after 1000ms delay (pending, 1)
+      after 800ms delay (pending, 1+1)
+      after 500ms delay (pending, 2+1)
+      after 200ms delay (pending, 3+2)
+      end (fulfilled, 5)
+you should see all data flow
+      `}</p>
+      <h3>promiseState: {JSON.stringify(promiseState)}</h3>
+      <h3>value: {JSON.stringify(value)}</h3>
+      <button onClick={startSync}>startSync</button>
+    </div>
+  );
+};
+
 const App = () => {
   const count = useAppGlobal((e) => e.count);
   const forceUpdate = useState(false)[1];
@@ -98,6 +165,8 @@ const App = () => {
       <StaticDependencyGlobal id={Math.min(count, 2)} />
       <ConnectedComponent id={Math.min(count, 5)} />
       <Resetter />
+      <SyncChain />
+      <AsyncChain />
     </div>
   );
 };

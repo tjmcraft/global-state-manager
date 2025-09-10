@@ -17,12 +17,16 @@ export type GlobalState = {
   dataObject: {
     value: number | undefined,
   };
+  syncChainValue: number;
+  asyncChainValue: number;
 };
 
 export interface ActionPayloads {
   init: undefined;
   setCount: number;
   setValue: number | undefined;
+  syncChain: undefined;
+  asyncChain: undefined;
 }
 
 const INITIAL_STATE: GlobalState = {
@@ -35,7 +39,9 @@ const INITIAL_STATE: GlobalState = {
   },
   dataObject: {
     value: 1,
-  }
+  },
+  syncChainValue: 0,
+  asyncChainValue: 0,
 };
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>(undefined, true);
@@ -81,6 +87,71 @@ stateStore.addReducer('setValue', (global, actions, payload) => {
       value: payload,
     }
   };
+});
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+stateStore.addReducer('asyncChain', async (global) => {
+  await sleep(1000);
+  global = stateStore.getState();
+  setState({
+    ...global,
+    asyncChainValue: 1,
+  })
+  await sleep(800);
+  global = stateStore.getState();
+  setState({
+    ...global,
+    asyncChainValue: global.asyncChainValue + 1,
+  })
+});
+stateStore.addReducer('asyncChain', async (global) => {
+  await sleep(500);
+  global = stateStore.getState();
+  setState({
+    ...global,
+    asyncChainValue: global.asyncChainValue + 1,
+  })
+  await sleep(200);
+  global = stateStore.getState();
+  setState({
+    ...global,
+    asyncChainValue: global.asyncChainValue + 2,
+  })
+});
+
+stateStore.addReducer('syncChain', (global) => {
+  const start = Date.now();
+  const duration = 1000;
+
+  while (Date.now() - start < duration) {
+    // "Тяжёлая" работа — имитация нагрузки
+    Math.sqrt(Math.random() * 1e8);
+  }
+
+  global = getState();
+
+  return {
+    ...global,
+    syncChainValue: 1,
+  }
+});
+stateStore.addReducer('syncChain', (global) => {
+
+  const start = Date.now();
+  const duration = 500;
+
+  while (Date.now() - start < duration) {
+    // "Тяжёлая" работа — имитация нагрузки
+    Math.sqrt(Math.random() * 1e8);
+  }
+
+  global = getState();
+
+  return {
+    ...global,
+    syncChainValue: global.syncChainValue + 2,
+  }
 });
 
 stateStore.addCallback((global, reason) => console.debug("stateStore", "update", "\nreason:", reason, "\nglobal:", global));
