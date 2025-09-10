@@ -11,11 +11,9 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 	type ActionNames = keyof ActionPayloads;
 	type Actions = {
 		[ActionName in ActionNames]:
-		(undefined extends ActionPayloads[ActionName] ? (
-			(payload?: ActionPayloads[ActionName], options?: ActionOptions) => void
-		) : (
-				(payload: ActionPayloads[ActionName], options?: ActionOptions) => void
-			))
+			undefined extends ActionPayloads[ActionName]
+				? (payload?: ActionPayloads[ActionName], options?: ActionOptions) => Promise<void>
+				: (payload: ActionPayloads[ActionName], options?: ActionOptions) => Promise<void>;
 	};
 	type ActionPayload<ActionName extends ActionNames> = ActionPayloads[ActionName];
 	type ActionHandler<ActionName extends ActionNames> = (
@@ -108,19 +106,27 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 
 
 
-	const onDispatch = <T extends ActionNames>(name: T, payload?: ActionPayload<T>, options?: ActionOptions) => {
-		if (Array.isArray(reducers[name])) { // if reducers for this name exists
-			reducers[name].forEach((reducer) => {
-				const response = reducer(currentState as TState, actions, payload as ActionPayload<T>);
-				if (!response || typeof (response as Promise<void>).then === "function") {
-					return response;
+	const onDispatch = async <T extends ActionNames>(name: T, payload?: ActionPayload<T>, options?: ActionOptions) => {
+		if (!Array.isArray(reducers[name])) return; // if reducers for this name exists
+
+		for (const reducer of reducers[name]) {
+			try {
+				const result = reducer(currentState as TState, actions, payload as ActionPayload<T>);
+
+				if (!result || typeof (result as Promise<unknown>).then === "function") {
+					await (result as Promise<unknown>).catch((err) => {
+						console.error("[GSM]", "[onDispatch]", "async reducer thrown an error:", err);
+					});
+				} else if (result) {
+					options = {
+						...options,
+						reason: `@dispatch:${name.toString()}${options?.reason ? ('->' + options?.reason) : ''}`,
+					};
+					setState(result as TState, options);
 				}
-				options = {
-					...options,
-					reason: '@dispatch:' + name.toString() + (options?.reason ? ('->' + options?.reason) : ''),
-				};
-				setState(response as TState, options);
-			});
+			} catch (err) {
+				console.error("[GSM]", "[onDispatch]", "reducer thrown an error:", err);
+			}
 		}
 	};
 
