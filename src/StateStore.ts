@@ -113,11 +113,11 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 			try {
 				const result = reducer(currentState as TState, actions, payload as ActionPayload<T>);
 
-				if (!result || typeof (result as Promise<unknown>).then === "function") {
-					await (result as Promise<unknown>).catch((err) => {
-						console.error("[GSM]", "[onDispatch]", "async reducer thrown an error:", err);
-					});
-				} else if (result) {
+				if (!result) continue;
+
+				if (typeof (result as Promise<unknown>).then === "function") {
+					await (result as Promise<unknown>);
+				} else {
 					options = {
 						...options,
 						reason: `@dispatch:${name.toString()}${options?.reason ? ('->' + options?.reason) : ''}`,
@@ -126,6 +126,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 				}
 			} catch (err) {
 				console.error("[GSM]", "[onDispatch]", "reducer thrown an error:", err);
+				if (options?.shouldThrow) throw err;
 			}
 		}
 	};

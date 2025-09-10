@@ -4,6 +4,7 @@ export interface ActionOptions {
   silent?: boolean;
   forceSync?: boolean;
   reason?: string;
+  shouldThrow?: boolean;
 }
 
 export interface Storage {
