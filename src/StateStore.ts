@@ -1,7 +1,8 @@
+import type { ActionOptions } from "./types";
 import { shallowEqual } from "./Util/Iterates";
 import { generateIdFor } from "./Util/Random";
 import { throttleWithTickEnd } from "./Util/Schedules";
-import { ActionOptions } from "./types";
+import createHeavyAnimationController from "./heavyAnimation";
 
 export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<string, any>>(
 	initialState?: TState | undefined,
@@ -34,19 +35,29 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 	};
 	type Containers = Map<string, Container>;
 
+	const {
+		beginHeavyAnimation,
+		getIsHeavyAnimating,
+		waitHeavyAnimation,
+	} = createHeavyAnimationController();
+
 	let currentState: TState | undefined = initialState;
 	let reducers: ActionHandlers = {} as ActionHandlers;
 	let actions: Actions = {} as Actions;
 	let containers: Containers = new Map();
 
+	let forceOnHeavyAnimation = true;
+
 	const setState: (state: TState, options?: ActionOptions) => TState = (state, options) => {
-		if (typeof state === "object" && state !== currentState) {
+		if (typeof state === 'object' && state !== currentState) {
 			currentState = state;
 			debugMode && console.debug("[StateStore]", "[setState]", "\noptions:", options, "\nstate:", state);
 			if (!options?.silent) { // if silent -> no callbacks
 				if (options?.forceSync) {
+					forceOnHeavyAnimation = true;
 					runCallbacks(options?.reason);
 				} else {
+					if (options?.forceOnHeavyAnimation) forceOnHeavyAnimation = true;
 					runCallbacksThrottled(options?.reason);
 				}
 			}
@@ -69,9 +80,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 			try {
 				newMappedProps = selector(currentState, ownProps);
 			} catch (err) {
-				debugMode && console.error(">> GSTATE", "CONTAINER\n", "UPDATE",
-					"Чёт наебнулось, но всем как-то похуй, да?\n",
-					"Может трейс глянешь хоть:\n", err);
+				debugMode && console.error("[GSM]", "updateContainers\n", "selector thrown an error", err);
 				return;
 			}
 
@@ -97,8 +106,16 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 			callbacks.splice(index, 1);
 		}
 	};
-	const runCallbacks = (reason?: string) => {
+	const runCallbacks = async (reason?: string) => {
+		if (forceOnHeavyAnimation) forceOnHeavyAnimation = false;
+		else if (getIsHeavyAnimating()) {
+			debugMode && console.debug("[GSM]", "runCallbacks is waiting for heavy animation end");
+			await waitHeavyAnimation();
+			void runCallbacksThrottled();
+			return;
+		}
 		reason = reason || '@ss_no_reason';
+		debugMode && console.debug("[GSM]", "runCallbacks for", reason);
 		callbacks.forEach((cb) => cb(currentState as TState, reason)); // skip check cause we already checked while adding it
 	};
 
@@ -194,6 +211,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 		removeReducer,
 		getDispatch,
 		withState,
+		beginHeavyAnimation,
 	};
 };
 

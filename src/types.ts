@@ -3,6 +3,7 @@ import React from "react";
 export interface ActionOptions {
   silent?: boolean;
   forceSync?: boolean;
+  forceOnHeavyAnimation?: boolean;
   reason?: string;
   shouldThrow?: boolean;
 }
