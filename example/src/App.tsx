@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { connector, getDispatch, getState, useAppGlobal, useStatic } from "./store/Global";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { connector, getDispatch, getState, stateStore, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
   const count = useAppGlobal((e) => e.count);
@@ -150,6 +150,95 @@ you should see all data flow
   );
 };
 
+function waitForSmoothScrollEnd(container: HTMLElement, callback: () => void, idleDelay = 20) {
+	let timeout: number | null = null;
+
+	const onScroll = () => {
+		if (timeout) clearTimeout(timeout);
+		timeout = window.setTimeout(() => {
+			container.removeEventListener('scroll', onScroll);
+			callback();
+		}, idleDelay);
+	};
+
+	container.addEventListener('scroll', onScroll, { passive: true });
+	onScroll(); // запускаем таймер сразу
+}
+
+const HeavyAnimationTest = () => {
+
+  const targetValue = useAppGlobal(state => state.heavyAnimationTargetValue);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const targetRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleStart = useCallback(() => {
+    if (!containerRef.current) return;
+    if (!targetRef.current) return;
+    // begin heavy animation (lock store callbacks)
+    console.debug('begin heavy animation for target');
+    const animationEnd = stateStore.beginHeavyAnimation();
+    targetRef.current.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+    window.setTimeout(() => {
+      // trying to patch global in middle of animation
+      const global = stateStore.getState();
+      console.debug('set heavy animation value');
+      stateStore.setState({
+        ...global,
+        heavyAnimationTargetValue: '💀 1613 ❄️',
+      });
+    }, 100)
+    // on transition end release store lock
+    waitForSmoothScrollEnd(containerRef.current, () => {
+      console.debug('heavy animation end');
+      animationEnd();
+    });
+  }, []);
+
+  const handleReset = useCallback(() => {
+    if (!containerRef.current) return;
+    console.debug('begin heavy animation for reset');
+    const animationEnd = stateStore.beginHeavyAnimation();
+    containerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    window.setTimeout(() => {
+      // trying to patch global in middle of animation
+      const global = stateStore.getState();
+      console.debug('set heavy animation value');
+      stateStore.setState({
+        ...global,
+        heavyAnimationTargetValue: 'target',
+      });
+    }, 100)
+    // on transition end release store lock
+    waitForSmoothScrollEnd(containerRef.current, () => {
+      console.debug('heavy animation end');
+      animationEnd();
+    });
+  }, []);
+
+  return (
+    <div className="component heavy-animation">
+      <h1>Heavy Animation Lock Test</h1>
+      <p>When heavy animating some css properties, you should avoid of global state callbacks that triggers new render on animated component, which breaks the animation</p>
+      <p>With GSM you can block unwanted updates with <code>store.beginHeavyAnimation(duration)</code></p>
+      <p>In this block we trying to imitate setting state while scroll animation happens</p>
+      <br />
+      <div ref={containerRef} style={{ height: 64, overflowY: 'scroll', width: 128, border: '1px solid red', display: 'flex', flexDirection: 'column' }}>
+        {Array.from(Array(2000).fill(0).map((e, i) =>
+          i + 1 == 1613 ?
+            (<span ref={targetRef}>{targetValue}</span>) :
+            (<span>{`element:${i + 1}`}</span>)
+        ))}
+      </div>
+      <button onClick={handleStart}>ScrollIntoView</button>
+      <button onClick={handleReset}>Reset</button>
+    </div>
+  );
+};
+
 const App = () => {
   const count = useAppGlobal((e) => e.count);
   const forceUpdate = useState(false)[1];
@@ -167,6 +256,7 @@ const App = () => {
       <Resetter />
       <SyncChain />
       <AsyncChain />
+      <HeavyAnimationTest />
     </div>
   );
 };

@@ -19,6 +19,7 @@ export type GlobalState = {
   };
   syncChainValue: number;
   asyncChainValue: number;
+  heavyAnimationTargetValue: string;
 };
 
 export interface ActionPayloads {
@@ -42,6 +43,7 @@ const INITIAL_STATE: GlobalState = {
   },
   syncChainValue: 0,
   asyncChainValue: 0,
+  heavyAnimationTargetValue: "target",
 };
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>(undefined, true);
