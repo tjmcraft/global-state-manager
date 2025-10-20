@@ -84,7 +84,7 @@ const connect = <
 
       const forceUpdate = useForceUpdate();
       const mappedProps = useRef<ReturnType<typeof selector>>();
-      const picker = useCallback(selector, [selector, props]);
+      const picker = useCallback(selector, [selector]);
 
       useMemo(() => {
         let nextState;
