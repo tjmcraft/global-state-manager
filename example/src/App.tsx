@@ -54,7 +54,6 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
   label: 'ConnectedComponent',
   debugInitialPicker: false,
   debugCallbackPicker: false,
-  debugCallbackPicked: true,
 })(({ counter, id, value }) => {
   console.debug('[ConnectedComponent]', 'render', { counter, id, value });
   return (

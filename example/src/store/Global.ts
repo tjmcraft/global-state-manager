@@ -46,7 +46,7 @@ const INITIAL_STATE: GlobalState = {
   heavyAnimationTargetValue: "target",
 };
 
-export const stateStore = StateStore<GlobalState, ActionPayloads>(undefined, true);
+export const stateStore = StateStore<GlobalState, ActionPayloads>(INITIAL_STATE, true);
 
 const cachingReducer = (global: GlobalState): Partial<GlobalState> => {
   return {
