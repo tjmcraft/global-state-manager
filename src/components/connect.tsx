@@ -1,5 +1,4 @@
-import { createElement, memo, useCallback, useEffect, useMemo, useRef } from "react";
-import useForceUpdate from "../hooks/useForceUpdate";
+import { createElement, memo, useCallback, useEffect, useState } from "react";
 import useGsmContext from "../hooks/useGsmContext";
 import { ConnectOptions, TypedConnector } from "../types";
 import { randomString } from "../Util/Random";
@@ -9,16 +8,15 @@ import { shallowEqual, stacksDiff, stacksEqual } from "../Util/Iterates";
 const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, updateCallback: Function, options: ConnectOptions) => {
   return (global: T, reason?: string): S =>
     updateCallback((prevState: T, ownProps: O) => {
-
       let nextState;
       try {
         nextState = selector(global, ownProps);
       } catch (err) {
-        return;
+        console.error("[GSM]", `connect on ${options.label}\n`, "next selector thrown an error\n", err);
+        return prevState;
       }
 
       if (global !== undefined) {
-
         const isArray = Array.isArray(prevState) || Array.isArray(nextState);
         const shouldUpdate = isArray ?
           !stacksEqual(prevState as Array<any>, nextState as Array<any>) :
@@ -26,30 +24,21 @@ const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, update
 
         if (options.debugCallbackPicker) {
           console.debug(
-            "[gsm:connect]", "[picking]", "->", options.label,
+            "[GSM]", `connect on ${options.label}\n`, "next selector is picking",
             "\n", "reason", "=>", reason,
+            "\n", "next", "=>", nextState,
+            "\n", "current", "=>", prevState,
+            "\n", "result", "=>", shouldUpdate,
             ...(isArray ? (
               [
                 "\n", "stacksEqual", "=>", stacksEqual(prevState as Array<any>, nextState as Array<any>),
                 "\n", "stacksDiff", "=>", stacksDiff(prevState as Array<any>, nextState as Array<any>),
-                "\n", "current", "=>", prevState,
-                "\n", "next", "=>", nextState,
-                "\n", "result", "=>", shouldUpdate,
               ]
-            ) : [
-              "\n", "next", "=>", nextState,
-            ])
+            ) : [])
           );
         }
 
         if (shouldUpdate) {
-          if (options.debugCallbackPicked) {
-            console.debug(
-              "[gsm:connect]", "[picked]", "->", options.label,
-              "\n", "reason", "=>", reason,
-              "\n", "next", "=>", nextState,
-            );
-          }
           return nextState;
         }
       }
@@ -69,9 +58,8 @@ const connect = <
   options = Object.assign({
     nonMemoizedContainer: false,
     label: randomString(5),
-    debugCallbackPicker: false,
-    debugCallbackPicked: false,
     debugInitialPicker: false,
+    debugCallbackPicker: false,
   } satisfies ConnectOptions, options);
 
   return (Component: React.FC<Selected>) => {
@@ -79,56 +67,52 @@ const connect = <
     function TCContainer(props: OwnProps) {
       const { store } = useGsmContext();
 
-      (options.debugInitialPicker || options.debugCallbackPicker) &&
-        console.debug('[gsm:connect]', 'rendering', 'TCContainer', { props });
-
-      const forceUpdate = useForceUpdate();
-      const mappedProps = useRef<ReturnType<typeof selector>>();
-      const picker = useCallback(selector, [selector]);
-
-      useMemo(() => {
-        let nextState;
+      const computeMappedProps: () => Selected = () => {
         options.debugInitialPicker &&
-          console.debug('[gsm:connect:initial_picker]', '->', `${options.label}\n`, 'start picking')
+          console.debug("[GSM]", `connect on ${options.label}\n`, "initial selector is started picking");
         try {
-          const global = store.getState((e) => e);
-          nextState = picker(global, props);
+          const nextState = selector(store.getState(), props);
           options.debugInitialPicker &&
-            console.debug('[gsm:connect:initial_picker]', '->', `${options.label}\n`, { mappedProps, global, props, nextState });
-        } catch (e) {
-          // options.debugInitialPicker &&
-            console.error('[gsm:connect:initial_picker]', '->', `${options.label}\n`, 'thrown an error\n', e)
-          return undefined;
+            console.debug("[GSM]", `connect on ${options.label}\n`, "initial selector is picked\n", { nextState, props });
+          return nextState;
+        } catch (err) {
+          console.error("[GSM]", `connect on ${options.label}\n`, "initial selector thrown an error\n", err);
+          return mappedProps;
         }
-        mappedProps.current = nextState;
-      }, [picker, props]);
+      };
+
+      const [mappedProps, setMappedProps] = useState(() => computeMappedProps());
+
+      useEffect(() => { // force update on selector or props update
+        setMappedProps(computeMappedProps());
+      }, [selector, props]);
+
+      (options.debugInitialPicker || options.debugCallbackPicker) &&
+        console.debug("[GSM]", `connect on ${options.label}\n`, "is rendering TCContainer\n", { props, mappedProps: mappedProps, label: options.label });
+
+      const updateCallback = useCallback((next: AnyFunction) => {
+        setMappedProps((prev) => {
+          options.debugCallbackPicker &&
+            console.debug("[GSM]", `connect on ${options.label}\n`, "next selector is started picking");
+            const nextState = next(prev, props);
+          options.debugCallbackPicker &&
+            console.debug("[GSM]", `connect on ${options.label}\n`, "next selector is picked", { nextState, props });
+          return nextState != prev ? nextState : prev;
+        });
+      }, [mappedProps, props]);
+
+      const storeCallback = useCallback(
+        updateContainer<TState, Selected, OwnProps>(selector, updateCallback, options),
+        [updateCallback]
+      );
 
       useEffect(() => {
-        const updateCallback = (next: AnyFunction) => {
-          let nextState;
-          options.debugCallbackPicker &&
-            console.debug('[gsm:connect:next_picker]', '->', `${options.label}\n`, 'start picking');
-          try {
-            nextState = next(mappedProps.current, props);
-            options.debugCallbackPicker &&
-              console.debug('[gsm:connect:next_picker]', '->', `${options.label}\n`, { mappedProps, props, nextState });
-          } catch (e) {
-            // options.debugCallbackPicker &&
-              console.error('[gsm:connect:next_picker]', '->', `${options.label}\n`, 'thrown an error\n', e);
-            return undefined;
-          }
-          if (nextState != mappedProps.current) {
-            mappedProps.current = nextState;
-            void forceUpdate(bool => !bool);
-          }
-        };
-        const callback = updateContainer<TState, Selected, OwnProps>(picker, updateCallback, options);
-        store.addCallback(callback);
-        return () => store.removeCallback(callback);
-      }, [forceUpdate, picker, props]);
+        store.addCallback(storeCallback);
+        return () => store.removeCallback(storeCallback);
+      }, [storeCallback]);
 
       return createElement(Component, {
-        ...mappedProps.current,
+        ...mappedProps,
         ...props,
       } as Selected);
     };

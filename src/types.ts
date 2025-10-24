@@ -62,7 +62,6 @@ export type ConnectOptions = {
   nonMemoizedContainer?: boolean;
   label?: string;
   debugCallbackPicker?: boolean;
-  debugCallbackPicked?: boolean;
   debugInitialPicker?: boolean;
 };
 
