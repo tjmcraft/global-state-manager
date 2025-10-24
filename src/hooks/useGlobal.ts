@@ -86,7 +86,7 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 
 	useEffect(() => { // force update on inputs or selector update
 		setMappedProps(computeMappedProps());
-	}, [selector, ...inputs]);
+	}, [...inputs]);
 
 	const updateCallback = useCallback((next: AnyFunction | AnyLiteral) =>
 		setMappedProps((prev) => {
@@ -97,7 +97,7 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 
 	const storeCallback = useCallback(
 		updateContainer<TState, Selected>(selector, updateCallback, options),
-		[updateCallback, selector]
+		[updateCallback]
 	);
 
 	useEffect(() => {
