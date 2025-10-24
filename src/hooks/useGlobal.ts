@@ -68,11 +68,13 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 		label: randomString(5),
 	}, options), [options]);
 
+	const picker = useCallback(selector, [...inputs]);
+
 	const computeMappedProps: () => Selected = () => {
 		try {
 			options.debugInitialPicker &&
 				console.debug("[GSM]", `useGlobal on ${options.label}\n`, "initial selector is started picking");
-			const nextState = selector(store.getState());
+			const nextState = picker(store.getState());
 			options.debugInitialPicker &&
 				console.debug("[GSM]", `useGlobal on ${options.label}\n`, "initial selector is picked\n", { nextState });
 			return nextState;
@@ -86,7 +88,7 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 
 	useEffect(() => { // force update on inputs or selector update
 		setMappedProps(computeMappedProps());
-	}, [...inputs]);
+	}, [picker]);
 
 	const updateCallback = useCallback((next: AnyFunction | AnyLiteral) =>
 		setMappedProps((prev) => {
@@ -96,8 +98,8 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 	, []);
 
 	const storeCallback = useCallback(
-		updateContainer<TState, Selected>(selector, updateCallback, options),
-		[updateCallback]
+		updateContainer<TState, Selected>(picker, updateCallback, options),
+		[updateCallback, picker]
 	);
 
 	useEffect(() => {
