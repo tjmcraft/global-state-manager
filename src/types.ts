@@ -38,8 +38,8 @@ export type CachingOptions = {
 };
 
 export type PickOptions = {
-  debugPicker?: boolean;
-  debugPicked?: boolean;
+  debugInitialPicker?: boolean;
+  debugCallbackPicker?: boolean;
   label?: string;
 };
 
