@@ -8,7 +8,7 @@ import {
   useGlobal,
   useStaticGlobal,
   WebStorage,
-} from "global-state-manager";
+} from "@tjmc/global-state-manager";
 
 export type GlobalState = {
   __initialized: boolean; // add flag for waiting init
@@ -20,6 +20,7 @@ export type GlobalState = {
   syncChainValue: number;
   asyncChainValue: number;
   heavyAnimationTargetValue: string;
+  selectedStatic: string;
 };
 
 export interface ActionPayloads {
@@ -44,6 +45,7 @@ const INITIAL_STATE: GlobalState = {
   syncChainValue: 0,
   asyncChainValue: 0,
   heavyAnimationTargetValue: "target",
+  selectedStatic: "0",
 };
 
 export const stateStore = StateStore<GlobalState, ActionPayloads>(INITIAL_STATE, true);

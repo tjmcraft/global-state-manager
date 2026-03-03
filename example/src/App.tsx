@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { connector, getDispatch, getState, stateStore, useAppGlobal, useStatic } from "./store/Global";
+import { connector, getDispatch, getState, setState, stateStore, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
   const count = useAppGlobal((e) => e.count);
@@ -238,6 +238,29 @@ const HeavyAnimationTest = () => {
   );
 };
 
+const EnsureUseGlobalInputChange = () => {
+  const id = useAppGlobal(g => g.selectedStatic);
+  return (
+    <div className="component ensure-useGlobal-hook-deps-rotation">
+      <h1>Ensure useGlobal hook peer deps rotation in selector</h1>
+      <EnsureUseGlobalInputChangeInner id={id} />
+      <button onClick={() => setState({ ...getState(), selectedStatic: "1" }, {reason: 'eug'})}>1</button>
+      <button onClick={() => setState({ ...getState(), selectedStatic: "2" }, {reason: "eug"})}>2</button>
+    </div>
+  );
+};
+const EnsureUseGlobalInputChangeInner = ({ id }: { id: string }) => {
+  const staticData = useAppGlobal((e) => {
+    console.debug("eug-picker", { id });
+    return e.static[id];
+  }, [id], { label: "eug-label", debugInitialPicker: true, debugCallbackPicker: true });
+  return (
+    <div className="ensure-useGlobal-hook-deps-rotation-inner">
+      <pre>{JSON.stringify(staticData, null, 2)}</pre>
+    </div>
+  );
+}
+
 const App = () => {
   const count = useAppGlobal((e) => e.count);
   const forceUpdate = useState(false)[1];
@@ -256,6 +279,7 @@ const App = () => {
       <SyncChain />
       <AsyncChain />
       <HeavyAnimationTest />
+      <EnsureUseGlobalInputChange />
     </div>
   );
 };
