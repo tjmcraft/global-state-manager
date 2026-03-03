@@ -68,7 +68,13 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 		label: randomString(5),
 	}, options), [options]);
 
-	const picker = useCallback(selector, [...inputs]);
+	// Use a ref to always have the latest selector without creating new references
+	const pickerRef = React.useRef(selector);
+	useEffect(() => {
+		pickerRef.current = selector;
+	}, [selector, ...inputs]); // Update ref when selector or inputs change
+
+	const picker = useCallback((args: TState) => pickerRef.current(args), []);
 
 	const computeMappedProps: () => Selected = () => {
 		try {
@@ -88,7 +94,7 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 
 	useEffect(() => { // force update on inputs or selector update
 		setMappedProps(computeMappedProps());
-	}, [picker]);
+	}, [selector, ...inputs]);
 
 	const updateCallback = useCallback((next: AnyFunction | AnyLiteral) =>
 		setMappedProps((prev) => {
@@ -105,7 +111,7 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 	useEffect(() => {
 		store.addCallback(storeCallback);
 		return () => store.removeCallback(storeCallback);
-	}, [storeCallback]);
+	}, [storeCallback, store]);
 
 	return mappedProps as Selected;
 };
