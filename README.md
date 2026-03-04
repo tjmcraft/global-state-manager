@@ -1,115 +1,70 @@
 # @tjmc/global-state-manager
 
-Global State Manager for React
+Global state manager for React with typed dispatch, selector-based subscriptions, and concurrent-safe bindings via modern React APIs.
 
-## Installation
+## Install
 
 ```bash
 npm install @tjmc/global-state-manager
 ```
 
-## Usage
+## Quick Example
 
-### In React Project
+```ts
+import { StateStore } from '@tjmc/global-state-manager';
 
-In `store/Global.ts`:
+type GlobalState = { count: number };
+type ActionPayloads = { setCount: number };
 
-```typescript
-import {
- StateStore,
- TypedUseSelectorHook,
- useGlobal,
- useStaticGlobal,
- connect,
-} from '@tjmc/global-state-manager';
+export const store = StateStore<GlobalState, ActionPayloads>({ count: 0 });
 
-export type GlobalState = {
- count: number
-}
-
-export interface ActionPayloads {
- init: undefined;
- setCount: number;
-};
-
-const INITIAL_STATE: GlobalState = { count: 0 };
-
-export const stateStore = StateStore<GlobalState, ActionPayloads>();
-
-stateStore.addReducer("init", () => {
- return Object.assign({}, INITIAL_STATE);
-});
-
-stateStore.addReducer("setCount", (global, _actions, payload) => {
- return {
+store.addReducer('setCount', (global, _actions, payload) => ({
   ...global,
   count: payload,
- };
-});
-
-// hooks
-export const useAppGlobal = useGlobal as TypedUseSelectorHook<GlobalState>;
-export const useStatic = useStaticGlobal as TypedUseStaticHook<GlobalState>;
-// hoc
-export const withConnect = connect as TypedConnector<GlobalState>;
-// dispatch events triggers
-export const getDispatch = stateStore.getDispatch;
-// reducers on dispatch events
-export const addReducer = stateStore.addReducer;
-export const removeReducer = stateStore.removeReducer;
-// global state getter/setter's
-export const getState = stateStore.getState;
-export const setState = stateStore.setState;
-// callbacks
-export const withState = stateStore.withState; // callback with picker
-export const addCallback = stateStore.addCallback;
-export const removeCallback = stateStore.removeCallback;
+}));
 ```
 
+```tsx
+import { Provider, useGlobal } from '@tjmc/global-state-manager';
 
-In `App.tsx`:
+function Counter() {
+  const count = useGlobal<GlobalState, number>((s) => s.count);
+  return <div>{count}</div>;
+}
 
-```typescript
-import React from "react";
-import { getDispatch, useAppGlobal } from "./store/Global";
-
-const App = () => {
- const count = useAppGlobal(e => e.count);
-  const { setCount } = getDispatch();
-  const handleIncrement = () => setCount(count + 1);
-  const handleDecrement = () => setCount(count - 1);
-  console.log('>>render main')
-  return (
-    <div className="app">
-      <h1>state: {count}</h1>
-      <button onClick={handleIncrement}>+</button>
-      <button onClick={handleDecrement}>-</button>
-    </div>
-  );
-};
-
-export default App;
+<Provider store={store}>
+  <Counter />
+</Provider>
 ```
 
+## Exports
 
-In `index.tsx`:
+- `StateStore`
+- `Provider`
+- `useGlobal`
+- `useStaticGlobal`
+- `useStore`
+- `connect`
+- `StoreCaching`
+- `WebStorage`
 
-```typescript
-import React from 'react';
-import { createRoot } from 'react-dom/client';
+## Documentation
 
-import { Provider } from '@tjmc/global-state-manager';
+- Docs index: [docs/README.md](./docs/README.md)
+- Overview: [docs/overview.md](./docs/overview.md)
+- Getting started: [docs/getting-started.md](./docs/getting-started.md)
+- API: [docs/api](./docs/api)
+- Recipes: [docs/recipes](./docs/recipes)
 
-import { getDispatch, stateStore } from './store/Global';
-import App from './App';
+## Testing
 
-const root = createRoot(document.getElementById('app-root')!);
-
-getDispatch().init();
-
-root.render(
- <Provider store={stateStore}>
-  <App />
- </Provider>
-);
+```bash
+npm run test
+npm run test:store
+npm run test:hooks
+npm run test:hoc
 ```
+
+## License
+
+MIT
