@@ -246,16 +246,17 @@ const EnsureUseGlobalInputChange = () => {
     <div className="component ensure-useGlobal-hook-deps-rotation">
       <h1>Ensure useGlobal hook peer deps rotation in selector</h1>
       <EnsureUseGlobalInputChangeInner id={id} />
-      <button onClick={() => setState({ ...getState(), selectedStatic: "1" }, {reason: 'eug'})}>1</button>
-      <button onClick={() => setState({ ...getState(), selectedStatic: "2" }, {reason: "eug"})}>2</button>
+      <button onClick={() => setState({ ...getState(), selectedStatic: "1" }, {reason: 'selected-static-set'})}>1</button>
+      <button onClick={() => setState({ ...getState(), selectedStatic: "2" }, {reason: "selected-static-set"})}>2</button>
     </div>
   );
 };
 const EnsureUseGlobalInputChangeInner = ({ id }: { id: string }) => {
   const staticData = useAppGlobal((e) => {
-    // console.debug("eug-picker", { id });
+    console.debug("eug-picker-call", { id });
     return e.static[id];
-  }, [id]);
+  }, [id], { label: 'eug-picker', debugSnapshotPicker: true });
+  console.debug('[raw]', "EnsureUseGlobalInputChangeInner render", { staticData, id });
   return (
     <div className="ensure-useGlobal-hook-deps-rotation-inner">
       <pre>{JSON.stringify(staticData, null, 2)}</pre>
