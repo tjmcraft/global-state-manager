@@ -2,13 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { connector, getDispatch, getState, setState, stateStore, useAppGlobal, useStatic } from "./store/Global";
 
 const Counter = () => {
-  const count = useAppGlobal((e) => e.count);
+  const count = useAppGlobal((e) => e.count, [], {label: "counter-label", debugSnapshotPicker:true, debugSnapshotSkip: true});
   const { setCount } = getDispatch();
   const handleIncrement = () => setCount(count + 1, {reason: 'set_count_inc'});
   const handleDecrement = () => setCount(count - 1, {reason: 'set_count_dec'});
   useEffect(() => {
-    console.log(">>render Counter", count);
+    console.log("[useEffect]", "Render Counter Component", { count });
   }, [count]);
+  console.log("[raw]", "Render Counter Component", { count });
   return (
     <div className="component counter">
       <h1>Counter</h1>
@@ -22,8 +23,9 @@ const Counter = () => {
 const StaticDependency = ({ id = 1 }) => {
   const staticData = useStatic((e) => e.static[id], [id]);
   useEffect(() => {
-    console.log(">>render Static", staticData);
+    console.log("[useEffect]", "Render Static Component", staticData);
   }, [staticData]);
+  console.log("[raw]", "Render Static Component", staticData);
   return (
     <div className="component static-dependency">
       <h1>Static Dependency</h1>
@@ -52,8 +54,8 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
   })
 }, {
   label: 'ConnectedComponent',
-  debugSnapshotPicker: true,
-  debugSnapshotSkip: true,
+  debugSnapshotPicker: false,
+  debugSnapshotSkip: false,
 })(({ counter, id, value }) => {
   console.debug('[ConnectedComponent]', 'render', { counter, id, value });
   return (
@@ -265,8 +267,7 @@ const App = () => {
   const count = useAppGlobal((e) => e.count);
   const forceUpdate = useState(false)[1];
   useEffect(() => {
-    console.log(">>render App", count);
-    console.debug("State:", getState());
+    console.log("[useEffect]", "Render App Component", { count, state: getState() });
   }, [count]);
   return (
     <div className="app">
