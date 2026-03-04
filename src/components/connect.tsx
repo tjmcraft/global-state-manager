@@ -1,50 +1,8 @@
-import { createElement, memo, useCallback, useEffect, useState } from "react";
+import { createElement, memo, useCallback, useRef, useSyncExternalStore } from "react";
 import useGsmContext from "../hooks/useGsmContext";
 import { ConnectOptions, TypedConnector } from "../types";
 import { randomString } from "../Util/Random";
-import { shallowEqual, stacksDiff, stacksEqual } from "../Util/Iterates";
-
-
-const updateContainer = <T, S, O>(selector: (state: T, ownProps: O) => S, updateCallback: Function, options: ConnectOptions) => {
-  return (global: T, reason?: string): S =>
-    updateCallback((prevState: T, ownProps: O) => {
-      let nextState;
-      try {
-        nextState = selector(global, ownProps);
-      } catch (err) {
-        console.error("[GSM]", `connect on ${options.label}\n`, "next selector thrown an error\n", err);
-        return prevState;
-      }
-
-      if (global !== undefined) {
-        const isArray = Array.isArray(prevState) || Array.isArray(nextState);
-        const shouldUpdate = isArray ?
-          !stacksEqual(prevState as Array<any>, nextState as Array<any>) :
-          !shallowEqual(prevState, nextState);
-
-        if (options.debugCallbackPicker) {
-          console.debug(
-            "[GSM]", `connect on ${options.label}\n`, "next selector is picking",
-            "\n", "reason", "=>", reason,
-            "\n", "next", "=>", nextState,
-            "\n", "current", "=>", prevState,
-            "\n", "result", "=>", shouldUpdate,
-            ...(isArray ? (
-              [
-                "\n", "stacksEqual", "=>", stacksEqual(prevState as Array<any>, nextState as Array<any>),
-                "\n", "stacksDiff", "=>", stacksDiff(prevState as Array<any>, nextState as Array<any>),
-              ]
-            ) : [])
-          );
-        }
-
-        if (shouldUpdate) {
-          return nextState;
-        }
-      }
-      return prevState;
-    });
-};
+import { shallowEqual } from "../Util/Iterates";
 
 const connect = <
   OwnProps extends AnyLiteral,
@@ -55,69 +13,119 @@ const connect = <
   options: ConnectOptions = {}
 ) => {
 
-  options = Object.assign({
+  options = Object.assign<ConnectOptions, Partial<ConnectOptions>>({
     nonMemoizedContainer: false,
     label: randomString(5),
-    debugInitialPicker: false,
-    debugCallbackPicker: false,
-  } satisfies ConnectOptions, options);
+    debugSnapshotSkip: false,
+    debugSnapshotPicker: false,
+  }, options);
+
+  const anyDebugEnabled = options.debugSnapshotPicker || options.debugSnapshotSkip;
 
   return (Component: React.FC<Selected>) => {
 
-    function TCContainer(props: OwnProps) {
+    function TCContainer(ownProps: OwnProps) {
       const { store } = useGsmContext();
+      const reasonRef = useRef<string | undefined>("@connect_initial_snapshot");
+      const propsRef = useRef(ownProps);
+      propsRef.current = ownProps;
 
-      const computeMappedProps: () => Selected = () => {
-        options.debugInitialPicker &&
-          console.debug("[GSM]", `connect on ${options.label}\n`, "initial selector is started picking");
-        try {
-          const nextState = selector(store.getState(), props);
-          options.debugInitialPicker &&
-            console.debug("[GSM]", `connect on ${options.label}\n`, "initial selector is picked\n", { nextState, props });
-          return nextState;
-        } catch (err) {
-          console.error("[GSM]", `connect on ${options.label}\n`, "initial selector thrown an error\n", err);
-          return mappedProps;
+      const lastRef = useRef<{
+        state: TState;
+        props: OwnProps;
+        selected: Selected;
+      }>();
+
+      const getSnapshot = useCallback(() => {
+        const state = store.getState();
+        const prev = lastRef.current;
+        const reason = reasonRef.current || "@connect_snapshot";
+
+        if (
+          prev &&
+          prev.state === state &&
+          shallowEqual(prev.props, propsRef.current)
+        ) {
+          if (options.debugSnapshotSkip) {
+            console.debug(
+              "[GSM]", `connect on ${options.label}\n`,
+              "skipping snapshot on same state and own props",
+            );
+          }
+          return prev.selected;
         }
-      };
 
-      const [mappedProps, setMappedProps] = useState(() => computeMappedProps());
+        if (options.debugSnapshotPicker) {
+          console.debug("[GSM]", `connect on ${options.label}\n`, "snapshot is picking");
+        }
 
-      useEffect(() => { // force update on selector or props update
-        setMappedProps(computeMappedProps());
-      }, [selector, props]);
+        let nextSelected: Selected;
+        try {
+          nextSelected = selector(state, propsRef.current);
+        } catch (err) {
+          console.error("[GSM]", `connect on ${options.label}\n`, "selector thrown an error\n", err);
+          return prev?.selected as Selected;
+        }
 
-      (options.debugInitialPicker || options.debugCallbackPicker) &&
-        console.debug("[GSM]", `connect on ${options.label}\n`, "is rendering TCContainer\n", { props, mappedProps: mappedProps, label: options.label });
+        const shouldSkipUpdate = prev && shallowEqual(prev.selected, nextSelected);
+        if (options.debugSnapshotPicker) {
+          console.debug(
+            "[GSM]", `connect on ${options.label}\n`, "snapshot is picked, equaling..",
+            "\n", "call_reason", "=>", reason,
+            "\n", "current_state", "=>", prev?.selected,
+            "\n", "next_state", "=>", nextSelected,
+            "\n", "shouldUpdate", "=>", !shouldSkipUpdate,
+          );
+        }
+        if (shouldSkipUpdate) return prev.selected;
 
-      const updateCallback = useCallback((next: AnyFunction) => {
-        setMappedProps((prev) => {
-          options.debugCallbackPicker &&
-            console.debug("[GSM]", `connect on ${options.label}\n`, "next selector is started picking");
-            const nextState = next(prev, props);
-          options.debugCallbackPicker &&
-            console.debug("[GSM]", `connect on ${options.label}\n`, "next selector is picked", { nextState, props });
-          return nextState != prev ? nextState : prev;
-        });
-      }, [mappedProps, props]);
+        lastRef.current = {
+          state,
+          props: propsRef.current,
+          selected: nextSelected,
+        };
 
-      const storeCallback = useCallback(
-        updateContainer<TState, Selected, OwnProps>(selector, updateCallback, options),
-        [updateCallback]
+        if (options.debugSnapshotPicker) {
+          console.debug(
+            "[GSM]", `connect on ${options.label}\n`, "state is picked",
+            "\n", "call_reason", "=>", reason,
+            "\n", "next_state", "=>", nextSelected,
+          );
+        }
+
+        return nextSelected;
+      }, [store, selector]);
+
+      const subscribe = useCallback((onStorageChange: () => void) => {
+        const cb = (_global: TState, reason?: string) => {
+          reasonRef.current = reason;
+          anyDebugEnabled &&
+            console.debug("[GSM]", `connect on ${options.label}\n`,
+              "store pushed update", { reason });
+          onStorageChange();
+        }
+        store.addCallback(cb);
+        return () => store.removeCallback(cb);
+      }, [store]);
+
+      const mappedProps = useSyncExternalStore(
+        subscribe,
+        getSnapshot,
       );
 
-      useEffect(() => {
-        store.addCallback(storeCallback);
-        return () => store.removeCallback(storeCallback);
-      }, [storeCallback]);
+      anyDebugEnabled &&
+        console.debug("[GSM]", `connect on ${options.label}\n`,
+          "rendering TCContainer", { ownProps, mappedProps });
 
       return createElement(Component, {
         ...mappedProps,
-        ...props,
+        ...ownProps,
       } as Selected);
-    };
+    }
 
-    return options.nonMemoizedContainer ? TCContainer : memo(TCContainer);
+    return options.nonMemoizedContainer
+      ? TCContainer
+      : memo(TCContainer);
   };
 };
 

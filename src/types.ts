@@ -61,8 +61,8 @@ export interface TypedUseStaticHook<TState> {
 export type ConnectOptions = {
   nonMemoizedContainer?: boolean;
   label?: string;
-  debugCallbackPicker?: boolean;
-  debugInitialPicker?: boolean;
+  debugSnapshotPicker?: boolean;
+  debugSnapshotSkip?: boolean;
 };
 
 export type TypedConnector<EState extends AnyLiteral> = <
