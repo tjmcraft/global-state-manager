@@ -22,31 +22,27 @@ store.addReducer('setCount', (global, _actions, payload) => ({
   ...global,
   count: payload,
 }));
+
+export const { setCount } = store.getDispatch();
 ```
 
 ```tsx
 import { Provider, useGlobal } from '@tjmc/global-state-manager';
+import { setCount } from './store';
 
 function Counter() {
   const count = useGlobal<GlobalState, number>((s) => s.count);
-  return <div>{count}</div>;
+  return (
+    <button onClick={() => setCount(count + 1, { reason: 'counter_click' })}>
+      {count}
+    </button>
+  );
 }
 
 <Provider store={store}>
   <Counter />
 </Provider>
 ```
-
-## Exports
-
-- `StateStore`
-- `Provider`
-- `useGlobal`
-- `useStaticGlobal`
-- `useStore`
-- `connect`
-- `StoreCaching`
-- `WebStorage`
 
 ## Documentation
 
@@ -55,6 +51,13 @@ function Counter() {
 - Getting started: [docs/getting-started.md](./docs/getting-started.md)
 - API: [docs/api](./docs/api)
 - Recipes: [docs/recipes](./docs/recipes)
+
+## Build
+
+```bash
+npm run typescript
+npm run build
+```
 
 ## Testing
 
