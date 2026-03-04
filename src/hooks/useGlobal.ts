@@ -1,119 +1,121 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { shallowEqual, stacksDiff, stacksEqual } from "../Util/Iterates";
+import React, { useCallback, useMemo, useRef, useSyncExternalStore } from "react";
+import { shallowEqual, stacksEqual } from "../Util/Iterates";
 import { randomString } from "../Util/Random";
 
 import type { PickOptions, TypedUseSelectorHook } from "../types";
 import useGsmContext from "./useGsmContext";
 
-const updateContainer = <T, S>(
-	selector: (state: T) => S,
-	updateCallback: Function,
-	options: PickOptions
-) => {
-	return (global: T, reason?: string): S =>
-		updateCallback((prevState: T) => {
-			let nextState;
-			try {
-				nextState = selector(global as T);
-			} catch (err) {
-				console.error("[GSM]", `useGlobal on ${options.label}\n`, "next selector thrown an error\n", err);
-				return prevState;
-			}
-
-			if (global !== undefined) {
-				const isArray = Array.isArray(prevState) || Array.isArray(nextState);
-				const shouldUpdate = isArray ?
-					!stacksEqual(prevState as Array<any>, nextState as Array<any>) :
-					!shallowEqual(prevState, nextState);
-
-				if (options.debugCallbackPicker) {
-					// prettier-ignore
-					console.debug(
-						"[GSM]", `useGlobal on ${options.label}\n`, "next selector is picking",
-						"\n", "reason", "=>", reason,
-						"\n", "current", "=>", prevState,
-						"\n", "next", "=>", nextState,
-						"\n", "result", "=>", shouldUpdate,
-						...(isArray ? (
-							[
-								"\n", "stacksEqual", "=>", stacksEqual(prevState as Array<any>, nextState as Array<any>),
-								"\n", "stacksDiff", "=>", stacksDiff(prevState as Array<any>, nextState as Array<any>),
-							]
-						) : [])
-					);
-				}
-
-				if (
-					// !arePropsShallowEqual(prevState, nextState)
-					shouldUpdate
-				) {
-					return nextState;
-				}
-			}
-			return prevState;
-		});
-};
-
 const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Selected = Partial<TState>>(
 	selector: (state: TState) => Selected,
 	inputs: React.DependencyList = [],
-	options: PickOptions = {}
+	options: Partial<PickOptions> = {}
 ): Selected => {
 
 	const { store } = useGsmContext();
 
-	options = useMemo(() => Object.assign<PickOptions, PickOptions>({
-		debugInitialPicker: false,
-		debugCallbackPicker: false,
+	const normalizedOptions = useMemo(() => Object.assign<PickOptions, Partial<PickOptions>>({
+		debugSnapshotPicker: false,
+		debugSnapshotSkip: false,
 		label: randomString(5),
 	}, options), [options]);
 
-	// Use a ref to always have the latest selector without creating new references
-	const pickerRef = React.useRef(selector);
-	useEffect(() => {
-		pickerRef.current = selector;
-	}, [selector, ...inputs]); // Update ref when selector or inputs change
+	const debugSnapshotPicker = normalizedOptions.debugSnapshotPicker;
+	const debugSnapshotSkip = normalizedOptions.debugSnapshotSkip;
+	const anyDebugEnabled = debugSnapshotPicker || debugSnapshotSkip;
 
-	const picker = useCallback((args: TState) => pickerRef.current(args), []);
+	const reasonRef = useRef<string | undefined>("@useGlobal_initial_snapshot");
+	const inputsRef = useRef(inputs);
+	inputsRef.current = inputs;
+	const lastRef = useRef<{
+		state: TState;
+		inputs: React.DependencyList;
+		selected: Selected;
+	}>();
 
-	const computeMappedProps: () => Selected = () => {
-		try {
-			options.debugInitialPicker &&
-				console.debug("[GSM]", `useGlobal on ${options.label}\n`, "initial selector is started picking");
-			const nextState = picker(store.getState());
-			options.debugInitialPicker &&
-				console.debug("[GSM]", `useGlobal on ${options.label}\n`, "initial selector is picked\n", { nextState });
-			return nextState;
-		} catch (err) {
-			console.error("[GSM]", `useGlobal on ${options.label}\n`, "initial selector thrown an error\n", err);
-			return mappedProps;
+	const getSnapshot = useCallback(() => {
+		const state = store.getState();
+		const prev = lastRef.current;
+		const currentInputs = inputsRef.current;
+		const shouldResolveReason = debugSnapshotPicker;
+		const hasInputsChanged = shouldResolveReason && !!prev
+			? !stacksEqual(prev.inputs as Array<any>, currentInputs as Array<any>)
+			: false;
+		const reason = shouldResolveReason
+			? (hasInputsChanged ? "@useGlobal_inputs_changed" : (reasonRef.current || "@useGlobal_snapshot"))
+			: undefined;
+
+		if (
+			prev &&
+			prev.state === state &&
+			stacksEqual(prev.inputs as Array<any>, currentInputs as Array<any>)
+		) {
+			if (debugSnapshotSkip) {
+				console.debug(
+					"[GSM]", `useGlobal on ${normalizedOptions.label}\n`,
+					"skipping snapshot on same state and inputs",
+				);
+			}
+			return prev.selected;
 		}
-	};
 
-	const [mappedProps, setMappedProps] = useState(() => computeMappedProps());
+		if (debugSnapshotPicker) {
+			console.debug("[GSM]", `useGlobal on ${normalizedOptions.label}\n`, "snapshot is picking");
+		}
 
-	useEffect(() => { // force update on inputs or selector update
-		setMappedProps(computeMappedProps());
-	}, [selector, ...inputs]);
+		let nextSelected: Selected;
+		try {
+			nextSelected = selector(state);
+		} catch (err) {
+			console.error("[GSM]", `useGlobal on ${normalizedOptions.label}\n`, "selector thrown an error\n", err);
+			return prev?.selected as Selected;
+		}
 
-	const updateCallback = useCallback((next: AnyFunction | AnyLiteral) =>
-		setMappedProps((prev) => {
-			const nextState = typeof next === 'function' ? next(prev) : next;
-      return nextState !== prev ? nextState : prev;
-		})
-	, []);
+		const shouldSkipUpdate = prev && shallowEqual(prev.selected, nextSelected);
+		if (debugSnapshotPicker) {
+			console.debug(
+				"[GSM]", `useGlobal on ${normalizedOptions.label}\n`, "snapshot is picked, equaling..",
+				"\n", "call_reason", "=>", reason,
+				"\n", "current_state", "=>", prev?.selected,
+				"\n", "next_state", "=>", nextSelected,
+				"\n", "shouldUpdate", "=>", !shouldSkipUpdate,
+			);
+		}
+		if (shouldSkipUpdate) return prev.selected;
 
-	const storeCallback = useCallback(
-		updateContainer<TState, Selected>(picker, updateCallback, options),
-		[updateCallback, picker]
+		lastRef.current = {
+			state,
+			inputs: [...currentInputs],
+			selected: nextSelected,
+		};
+
+		if (debugSnapshotPicker) {
+			console.debug(
+				"[GSM]", `useGlobal on ${normalizedOptions.label}\n`, "state is picked",
+				"\n", "call_reason", "=>", reason,
+				"\n", "next_state", "=>", nextSelected,
+			);
+		}
+
+		return nextSelected;
+	}, [store, selector, normalizedOptions, ...inputs]);
+
+	const subscribe = useCallback((onStorageChange: () => void) => {
+		const cb = (_global: TState, reason?: string) => {
+			if (anyDebugEnabled) {
+				reasonRef.current = reason;
+				console.debug("[GSM]", `useGlobal on ${normalizedOptions.label}\n`,
+					"store pushed update", { reason });
+			}
+			onStorageChange();
+		};
+		store.addCallback(cb);
+		return () => store.removeCallback(cb);
+	}, [store, anyDebugEnabled, normalizedOptions.label]);
+
+	return useSyncExternalStore(
+		subscribe,
+		getSnapshot,
 	);
-
-	useEffect(() => {
-		store.addCallback(storeCallback);
-		return () => store.removeCallback(storeCallback);
-	}, [storeCallback, store]);
-
-	return mappedProps as Selected;
 };
 
 export default useGlobal;

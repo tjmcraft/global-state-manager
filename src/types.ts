@@ -38,8 +38,8 @@ export type CachingOptions = {
 };
 
 export type PickOptions = {
-  debugInitialPicker?: boolean;
-  debugCallbackPicker?: boolean;
+  debugSnapshotPicker?: boolean;
+  debugSnapshotSkip?: boolean;
   label?: string;
 };
 
@@ -61,8 +61,8 @@ export interface TypedUseStaticHook<TState> {
 export type ConnectOptions = {
   nonMemoizedContainer?: boolean;
   label?: string;
-  debugCallbackPicker?: boolean;
-  debugInitialPicker?: boolean;
+  debugSnapshotPicker?: boolean;
+  debugSnapshotSkip?: boolean;
 };
 
 export type TypedConnector<EState extends AnyLiteral> = <
