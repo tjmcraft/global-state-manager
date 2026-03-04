@@ -101,10 +101,11 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 
 	const subscribe = useCallback((onStorageChange: () => void) => {
 		const cb = (_global: TState, reason?: string) => {
-			reasonRef.current = reason;
-			anyDebugEnabled &&
+			if (anyDebugEnabled) {
+				reasonRef.current = reason;
 				console.debug("[GSM]", `useGlobal on ${normalizedOptions.label}\n`,
 					"store pushed update", { reason });
+			}
 			onStorageChange();
 		};
 		store.addCallback(cb);

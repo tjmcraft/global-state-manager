@@ -100,12 +100,11 @@ const connect = <
 
       const subscribe = useCallback((onStorageChange: () => void) => {
         const cb = (_global: TState, reason?: string) => {
-          if (options.debugSnapshotPicker) {
+          if (anyDebugEnabled) {
             reasonRef.current = reason;
-          }
-          anyDebugEnabled &&
             console.debug("[GSM]", `connect on ${options.label}\n`,
               "store pushed update", { reason });
+          }
           onStorageChange();
         }
         store.addCallback(cb);
