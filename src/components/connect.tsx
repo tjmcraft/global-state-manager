@@ -10,7 +10,7 @@ const connect = <
   Selected extends AnyLiteral & OwnProps
 >(
   selector: (global: TState, props: OwnProps) => Selected,
-  options: ConnectOptions = {}
+  options: Partial<ConnectOptions> = {}
 ) => {
 
   options = Object.assign<ConnectOptions, Partial<ConnectOptions>>({
@@ -94,7 +94,7 @@ const connect = <
         }
 
         return nextSelected;
-      }, [store, selector]);
+      }, [store, selector, options]);
 
       const subscribe = useCallback((onStorageChange: () => void) => {
         const cb = (_global: TState, reason?: string) => {
@@ -106,7 +106,7 @@ const connect = <
         }
         store.addCallback(cb);
         return () => store.removeCallback(cb);
-      }, [store]);
+      }, [store, anyDebugEnabled, options]);
 
       const mappedProps = useSyncExternalStore(
         subscribe,
