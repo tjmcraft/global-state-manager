@@ -81,7 +81,7 @@ export default function StateStore<TState = AnyLiteral, ActionPayloads = Record<
 				newMappedProps = selector(currentState, ownProps);
 			} catch (err) {
 				debugMode && console.error("[GSM]", "updateContainers\n", "selector thrown an error", err);
-				return;
+				continue;
 			}
 
 			if (Object.keys(newMappedProps).length && !shallowEqual(mappedProps, newMappedProps)) {
