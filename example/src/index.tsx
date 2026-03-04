@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 
-import { Provider } from '@tjmc/global-state-manager';
+import { Provider } from 'global-state-manager';
 
 import { getDispatch, stateStore } from './store/Global';
 import App from './App';

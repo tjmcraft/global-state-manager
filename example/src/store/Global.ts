@@ -8,7 +8,7 @@ import {
   useGlobal,
   useStaticGlobal,
   WebStorage,
-} from "@tjmc/global-state-manager";
+} from "global-state-manager";
 
 export type GlobalState = {
   __initialized: boolean; // add flag for waiting init

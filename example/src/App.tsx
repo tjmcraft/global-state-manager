@@ -52,8 +52,8 @@ const ConnectedComponent = connector<{ id: number }, {counter: any, value: any}>
   })
 }, {
   label: 'ConnectedComponent',
-  debugInitialPicker: false,
-  debugCallbackPicker: false,
+  debugSnapshotPicker: true,
+  debugSnapshotSkip: true,
 })(({ counter, id, value }) => {
   console.debug('[ConnectedComponent]', 'render', { counter, id, value });
   return (
@@ -251,9 +251,9 @@ const EnsureUseGlobalInputChange = () => {
 };
 const EnsureUseGlobalInputChangeInner = ({ id }: { id: string }) => {
   const staticData = useAppGlobal((e) => {
-    console.debug("eug-picker", { id });
+    // console.debug("eug-picker", { id });
     return e.static[id];
-  }, [id], { label: "eug-label", debugInitialPicker: true, debugCallbackPicker: true });
+  }, [id]);
   return (
     <div className="ensure-useGlobal-hook-deps-rotation-inner">
       <pre>{JSON.stringify(staticData, null, 2)}</pre>
