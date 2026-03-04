@@ -35,8 +35,14 @@ const useGlobal: TypedUseSelectorHook<AnyLiteral> = <TState = AnyLiteral, Select
 	const getSnapshot = useCallback(() => {
 		const state = store.getState();
 		const prev = lastRef.current;
-		const reason = reasonRef.current || "@useGlobal_snapshot";
 		const currentInputs = inputsRef.current;
+		const shouldResolveReason = debugSnapshotPicker;
+		const hasInputsChanged = shouldResolveReason && !!prev
+			? !stacksEqual(prev.inputs as Array<any>, currentInputs as Array<any>)
+			: false;
+		const reason = shouldResolveReason
+			? (hasInputsChanged ? "@useGlobal_inputs_changed" : (reasonRef.current || "@useGlobal_snapshot"))
+			: undefined;
 
 		if (
 			prev &&

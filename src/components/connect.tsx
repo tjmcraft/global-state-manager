@@ -39,7 +39,9 @@ const connect = <
       const getSnapshot = useCallback(() => {
         const state = store.getState();
         const prev = lastRef.current;
-        const reason = reasonRef.current || "@connect_snapshot";
+        const reason = options.debugSnapshotPicker
+          ? (reasonRef.current || "@connect_snapshot")
+          : undefined;
 
         if (
           prev &&
@@ -98,7 +100,9 @@ const connect = <
 
       const subscribe = useCallback((onStorageChange: () => void) => {
         const cb = (_global: TState, reason?: string) => {
-          reasonRef.current = reason;
+          if (options.debugSnapshotPicker) {
+            reasonRef.current = reason;
+          }
           anyDebugEnabled &&
             console.debug("[GSM]", `connect on ${options.label}\n`,
               "store pushed update", { reason });
